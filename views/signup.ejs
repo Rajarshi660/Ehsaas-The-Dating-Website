@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehsaas | Join the Vibe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-6">
+
+    <div class="glass-card w-full max-w-lg p-10 animate__animated animate__fadeIn">
+        <h2 class="text-4xl font-black text-white mb-2 tracking-tighter">अपना अहसास जोड़ें</h2>
+        <p class="text-rose-100/70 mb-8">Create your profile to find your rhythm.</p>
+
+        <form action="/auth/signup" method="POST" class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Full Name</label>
+                    <input type="text" name="name" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Age</label>
+                    <input type="number" name="age" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Date of Birth</label>
+                <input type="date" name="dob" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Favorite Genres (e.g. Sufi, Jazz, Tech)</label>
+                <input type="text" name="genres" placeholder="Comma separated..." required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" class="w-full py-4 bg-white text-pink-600 font-bold rounded-xl shadow-lg hover:scale-[1.02] transition-transform">
+                    Create My Profile
+                </button>
+            </div>
+        </form>
+
+        <p class="text-center mt-6 text-white/60 text-sm">
+            Already have an account? <a href="/login" class="text-white font-bold hover:underline">Login here</a>
+        </p>
+    </div>
+
+</body>
+</html>
