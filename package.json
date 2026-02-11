@@ -1,0 +1,22 @@
+{
+  "name": "ehsaas-the-dating-website",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.4",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "framer-motion": "^12.34.0",
+    "lucide-react": "^0.563.0",
+    "mongoose": "^9.2.0"
+  }
+}

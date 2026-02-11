@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehsaas | तस्वीरों से परे</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Rozha+One&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <link rel="stylesheet" href="/style.css">
+
+    <style>
+        .hindi-font { font-family: 'Rozha One', serif; }
+        .eng-font { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Ensure text is hidden before animation starts */
+        .reveal { opacity: 0; animation-fill-mode: forwards; }
+        
+        @keyframes stretchInX {
+            from { transform: scaleX(0); opacity: 0; }
+            to { transform: scaleX(1); opacity: 1; }
+        }
+        .animate__stretchInX {
+            animation-name: stretchInX;
+            animation-duration: 1.5s;
+            animation-timing-function: ease-out;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex flex-col items-center justify-center text-white relative overflow-hidden eng-font">
+
+    <nav class="absolute top-0 w-full p-8 flex justify-center md:justify-start items-center animate__animated animate__fadeInDown">
+        <div class="relative group cursor-pointer">
+            <div class="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-60 transition duration-1000"></div>
+            
+            <div class="relative flex items-center gap-3 glass-card px-5 py-2 rounded-2xl shadow-2xl leading-none">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-400 rounded-xl flex items-center justify-center shadow-inner rotate-3 group-hover:rotate-12 transition-transform duration-300">
+                        <span class="text-white font-black text-3xl italic">E</span>
+                    </div>
+                    <div class="pr-3">
+                        <span class="text-2xl font-extrabold tracking-tighter logo-text">EHSAAS</span>
+                    </div>
+                </div>
+                <div class="border-l border-white/20 pl-3 hidden sm:block">
+                    <span class="text-indigo-100 text-[10px] font-bold tracking-[0.2em] uppercase opacity-80">अहसास मिलें</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="text-center px-6 z-10">
+        <h1 class="hindi-font text-6xl md:text-8xl font-black mb-10 animate__animated animate__zoomInDown tracking-tighter leading-tight">
+            तस्वीरें नहीं, <br> 
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-300 to-white drop-shadow-lg">
+                अहसास मिलें।
+            </span>
+        </h1>
+        
+        <div class="space-y-6">
+            <p class="reveal hindi-font text-2xl md:text-4xl text-rose-50 italic animate__animated animate__fadeInUp animate__delay-1s">
+                "कुछ अनसुनी बातें, कुछ अनकहे अहसास,"
+            </p>
+            
+            <p class="reveal hindi-font text-2xl md:text-4xl text-rose-50 italic animate__animated animate__fadeInUp animate__delay-2s">
+                "ढूंढलो उसे, जो हो तुम्हारे सबसे ख़ास।"
+            </p>
+
+            <div class="reveal h-[2px] w-32 bg-gradient-to-r from-transparent via-yellow-200 to-transparent mx-auto my-8 animate__stretchInX animate__delay-3s"></div>
+
+            <p class="reveal text-lg md:text-xl max-w-2xl mx-auto font-light text-white/80 leading-relaxed animate__animated animate__fadeIn animate__delay-4s">
+                जहाँ कहानियाँ और यादें जुड़ती हैं। <br>
+                <span class="tracking-[0.4em] uppercase text-xs font-bold text-yellow-200/80">Ehsaas: Digital Soulmates</span>
+            </p>
+        </div>
+
+        <div class="reveal mt-12 animate__animated animate__fadeInUp animate__delay-5s">
+            <a href="/register" class="group relative inline-flex items-center gap-4 px-10 py-5 bg-white text-pink-600 font-extrabold text-xl rounded-full shadow-[0_20px_50px_rgba(244,63,94,0.4)] hover:scale-110 hover:bg-rose-50 transition-all duration-500">
+                सफ़र शुरू करें
+                <span class="group-hover:translate-x-3 transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </span>
+            </a>
+        </div>
+    </main>
+
+    <div class="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] animate-pulse"></div>
+    <div class="absolute top-[10%] right-[-10%] w-96 h-96 bg-yellow-400/10 rounded-full blur-[120px] animate-bounce" style="animation-duration: 10s;"></div>
+
+</body>
+</html>
