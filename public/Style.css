@@ -1,17 +1,13 @@
 /* public/style.css */
 
-/* 1. Variables for Consistency */
 :root {
-    --bg-dark: #0b0f1a;         /* Deepest Blue-Black */
-    --card-bg: #161b2a;         /* Slightly lighter for cards */
-    --accent-primary: #ff2d55;  /* Vibrant Pink (Instagram-esque) */
-    --accent-secondary: #7000ff; /* Electric Purple */
-    --text-pure: #ffffff;
-    --text-muted: #94a3b8;
-    --input-bg: #0f1422;
+    --bg-dark: #070912;
+    --card-bg: rgba(17, 24, 39, 0.8);
+    --accent-pink: #f43f5e;
+    --accent-purple: #8b5cf6;
+    --text-main: #f8fafc;
 }
 
-/* 2. Global Styling */
 * {
     margin: 0;
     padding: 0;
@@ -21,91 +17,78 @@
 body {
     background-color: var(--bg-dark);
     font-family: 'Plus Jakarta Sans', sans-serif;
-    color: var(--text-pure);
-    -webkit-font-smoothing: antialiased;
+    color: var(--text-main);
     overflow-x: hidden;
 }
 
-/* 3. The Living Background (Subtle version for Signup/Login) */
+/* 1. Dynamic Vibe Background */
 .gradient-bg {
-    background: radial-gradient(circle at top right, #1e1b4b, #0b0f1a),
-                radial-gradient(circle at bottom left, #2e1065, #0b0f1a);
+    background: radial-gradient(circle at top right, #1e1b4b, #070912),
+                radial-gradient(circle at bottom left, #4c1d95, #070912);
+    background-size: cover;
     min-height: 100vh;
 }
 
-/* 4. Modern Auth Card */
+/* 2. Glassmorphism Auth Card */
 .auth-card {
     background: var(--card-bg);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
     padding: 2.5rem;
-    transition: transform 0.3s ease;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
-/* 5. Clean, Sharp Inputs */
+/* 3. Modern Inputs */
 .input-field {
-    background: var(--input-bg) !important;
-    border: 1.5px solid #2d3748 !important;
-    border-radius: 14px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
     color: white !important;
-    padding: 14px 18px !important;
-    font-size: 0.95rem;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 14px !important;
+    width: 100%;
+    outline: none;
+    transition: all 0.3s ease;
 }
 
 .input-field:focus {
-    border-color: var(--accent-primary) !important;
-    background: #111827 !important;
-    box-shadow: 0 0 0 4px rgba(255, 45, 85, 0.15) !important;
-    outline: none;
+    border-color: var(--accent-pink) !important;
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.3) !important;
 }
 
-.input-field::placeholder {
-    color: #4a5568;
-}
-
-/* 6. Neon Gradient Button */
+/* 4. Beautiful Buttons */
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
     color: white;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    border-radius: 14px;
+    font-weight: 800;
     padding: 16px;
+    border-radius: 12px;
     border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 15px -3px rgba(255, 45, 85, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 20px 25px -5px rgba(255, 45, 85, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(244, 63, 94, 0.4);
 }
 
-/* 7. Typography Details */
+/* 5. Typography & Logo */
 .logo-text {
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     font-weight: 800;
-    letter-spacing: -1px;
-    background: linear-gradient(to right, #fff, #cbd5e1);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
-.hindi-text {
-    font-family: 'Rozha One', serif;
-    background: linear-gradient(to bottom right, #fff, #fca5a5);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.poem-line {
+    opacity: 0;
+    animation: fadeInUp 1s forwards;
 }
 
-/* 8. Responsive Design */
-@media (max-width: 640px) {
-    .auth-card {
-        padding: 1.5rem;
-        border-radius: 0; /* Full screen on mobile */
-        border: none;
-    }
+@keyframes fadeInUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }

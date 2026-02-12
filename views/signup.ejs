@@ -2,50 +2,29 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ehsaas | Join the Vibe</title>
+    <title>Ehsaas | Join Us</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/style.css">
 </head>
-<body class="gradient-bg min-h-screen flex items-center justify-center p-6">
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="auth-card w-full max-w-md animate__animated animate__fadeInUp">
+        <h2 class="text-3xl font-black mb-2">नया खाता <span class="text-pink-500">.</span></h2>
+        <p class="text-slate-400 mb-6 text-sm">Create a password to keep your Ehsaas private.</p>
 
-    <div class="glass-card w-full max-w-lg p-10 animate__animated animate__fadeIn">
-        <h2 class="text-4xl font-black text-white mb-2 tracking-tighter">अपना अहसास जोड़ें</h2>
-        <p class="text-rose-100/70 mb-8">Create your profile to find your rhythm.</p>
-
-        <form action="/auth/signup" method="POST" class="space-y-5">
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Full Name</label>
-                    <input type="text" name="name" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Age</label>
-                    <input type="number" name="age" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-                </div>
+        <form action="/auth/signup" method="POST" class="space-y-4">
+            <input type="text" name="name" placeholder="Full Name" required class="input-field">
+            <input type="email" name="email" placeholder="Email Address" required class="input-field">
+            <input type="password" name="password" placeholder="Create Password" required class="input-field">
+            
+            <div class="grid grid-cols-2 gap-3">
+                <input type="number" name="age" placeholder="Age" required class="input-field">
+                <input type="date" name="dob" required class="input-field">
             </div>
+            
+            <input type="text" name="genres" placeholder="Genres (Sufi, Jazz, Rock...)" required class="input-field">
 
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Date of Birth</label>
-                <input type="date" name="dob" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Favorite Genres (e.g. Sufi, Jazz, Tech)</label>
-                <input type="text" name="genres" placeholder="Comma separated..." required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
-            </div>
-
-            <div class="pt-4">
-                <button type="submit" class="w-full py-4 bg-white text-pink-600 font-bold rounded-xl shadow-lg hover:scale-[1.02] transition-transform">
-                    Create My Profile
-                </button>
-            </div>
+            <button type="submit" class="btn-primary mt-4">Start My Journey</button>
         </form>
-
-        <p class="text-center mt-6 text-white/60 text-sm">
-            Already have an account? <a href="/login" class="text-white font-bold hover:underline">Login here</a>
-        </p>
     </div>
-
 </body>
 </html>

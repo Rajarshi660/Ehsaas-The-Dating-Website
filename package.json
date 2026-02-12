@@ -15,8 +15,10 @@
     "dotenv": "^17.2.4",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
+    "express-session": "^1.19.0",
     "framer-motion": "^12.34.0",
     "lucide-react": "^0.563.0",
-    "mongoose": "^9.2.0"
+    "mongoose": "^9.2.0",
+    "multer": "^2.0.2"
   }
 }
