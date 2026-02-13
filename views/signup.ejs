@@ -1,30 +1,54 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Ehsaas | Join Us</title>
+    <title>Join Ehsaas</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/style.css">
 </head>
-<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
-    <div class="auth-card w-full max-w-md animate__animated animate__fadeInUp">
-        <h2 class="text-3xl font-black mb-2">नया खाता <span class="text-pink-500">.</span></h2>
-        <p class="text-slate-400 mb-6 text-sm">Create a password to keep your Ehsaas private.</p>
+<body class="bg-[#050505] text-white min-h-screen flex items-center justify-center p-6">
 
-        <form action="/auth/signup" method="POST" class="space-y-4">
-            <input type="text" name="name" placeholder="Full Name" required class="input-field">
-            <input type="email" name="email" placeholder="Email Address" required class="input-field">
-            <input type="password" name="password" placeholder="Create Password" required class="input-field">
-            
-            <div class="grid grid-cols-2 gap-3">
-                <input type="number" name="age" placeholder="Age" required class="input-field">
-                <input type="date" name="dob" required class="input-field">
+    <div class="w-full max-w-md bg-[#111] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
+        <header class="text-center mb-8">
+            <div class="w-12 h-12 bg-rose-600 rounded-2xl mx-auto mb-4 flex items-center justify-center font-black italic shadow-lg shadow-rose-600/20">E</div>
+            <h1 class="text-3xl font-black tracking-tight">Create Account</h1>
+            <p class="text-gray-500 text-sm mt-2">Start matching based on your vibe.</p>
+        </header>
+
+        <form action="/auth/signup" method="POST" class="space-y-5">
+            <input type="text" name="name" placeholder="Full Name" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500 transition" required>
+            <input type="email" name="email" placeholder="Email Address" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500 transition" required>
+            <input type="password" name="password" placeholder="Create Password" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500 transition" required>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] uppercase font-black text-gray-500 mb-2 tracking-widest px-2">My Gender</label>
+                    <select name="gender" class="w-full bg-black border border-white/10 p-4 rounded-2xl text-sm outline-none focus:border-rose-500 transition" required>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase font-black text-gray-500 mb-2 tracking-widest px-2">Interested In</label>
+                    <select name="interestedIn" class="w-full bg-black border border-white/10 p-4 rounded-2xl text-sm outline-none focus:border-rose-500 transition" required>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
             </div>
-            
-            <input type="text" name="genres" placeholder="Genres (Sufi, Jazz, Rock...)" required class="input-field">
 
-            <button type="submit" class="btn-primary mt-4">Start My Journey</button>
+            <input type="text" name="genres" placeholder="Your Vibes (Coding, Music, Art...)" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500 transition" required>
+
+            <button type="submit" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-xl">
+                Get Started
+            </button>
         </form>
+
+        <p class="text-center text-xs text-gray-600 mt-8 font-bold">
+            Already have an account? <a href="/login" class="text-rose-500 hover:underline">Login</a>
+        </p>
     </div>
+
 </body>
 </html>

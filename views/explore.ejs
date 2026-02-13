@@ -2,54 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Ehsaas | Explore Vibes</title>
+    <title>Explore | Ehsaas</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/style.css">
+    <style>
+        .vibe-card { transition: all 0.4s ease; }
+        .vibe-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(225, 29, 72, 0.15); }
+    </style>
 </head>
-<body class="gradient-bg min-h-screen text-white">
+<body class="bg-[#050505] text-white min-h-screen font-sans">
 
-    <nav class="w-full p-5 flex justify-between items-center bg-black/20 backdrop-blur-xl sticky top-0 z-50 border-b border-white/5">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-rose-600 rounded-lg flex items-center justify-center font-bold">E</div>
-            <span class="text-xl font-black tracking-tighter">EHSAAS</span>
-        </div>
-
-        <div class="flex items-center gap-4">
-            <a href="/profile" class="flex items-center gap-3 bg-white/5 hover:bg-white/10 p-1 pr-4 rounded-full transition border border-white/10">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-purple-600 flex items-center justify-center text-xs font-bold">
-                    <%= currentUser.name.charAt(0) %>
-                </div>
-                <span class="text-sm font-bold">My Profile</span>
-            </a>
+    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 px-8 py-4 flex justify-between items-center">
+        <a href="/profile" class="text-rose-500 font-black text-2xl tracking-tighter italic">EHSAAS</a>
+        <div class="flex gap-8 items-center text-sm font-bold">
+            <a href="/profile" class="hover:text-rose-500 transition">MY PROFILE</a>
+            <a href="/logout" class="bg-rose-600/10 text-rose-500 px-4 py-2 rounded-full hover:bg-rose-600 hover:text-white transition">LOGOUT</a>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto p-8">
-        <h2 class="text-3xl font-black mb-8">People Vibing with You <span class="text-rose-500">.</span></h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <% matches.forEach(match => { %>
-                <div class="auth-card p-6 group hover:scale-[1.02] transition-transform">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-2xl font-bold">
-                            <%= match.name.charAt(0) %>
+    <main class="max-w-6xl mx-auto py-16 px-6">
+        <header class="mb-12">
+            <h1 class="text-5xl font-black tracking-tight mb-4">Discover Your <span class="text-rose-500">Vibe.</span></h1>
+            <p class="text-gray-400 text-lg">Curated matches based on your unique interests.</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <% if (matches.length > 0) { %>
+                <% matches.forEach(match => { %>
+                    <div class="vibe-card bg-[#111] rounded-[2.5rem] overflow-hidden border border-white/10 flex flex-col">
+                        <div class="h-80 relative">
+                            <img src="<%= match.profilePic || 'https://via.placeholder.com/400' %>" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent"></div>
+                            <div class="absolute top-6 right-6 bg-black/60 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20">
+                                <span class="text-rose-500 font-black text-sm"><%= match.percent %>% Match</span>
+                            </div>
                         </div>
-                        <span class="bg-rose-500/20 text-rose-400 text-xs font-bold px-3 py-1 rounded-full border border-rose-500/30">
-                            <%= match.matchPercent %>% Match
-                        </span>
+
+                        <div class="p-8 pt-0 flex-1 flex flex-col">
+                            <h3 class="text-2xl font-bold mb-2"><%= match.name %></h3>
+                            <p class="text-gray-400 text-sm mb-6 line-clamp-2"><%= match.bio || 'No bio shared yet.' %></p>
+
+                            <div class="mt-auto">
+                                <h4 class="text-[10px] uppercase tracking-widest font-black text-rose-500 mb-3">Shared Vibes</h4>
+                                <div class="flex flex-wrap gap-2 mb-8">
+                                    <% if (match.common && match.common.length > 0) { %>
+                                        <% match.common.forEach(genre => { %>
+                                            <span class="text-[10px] bg-white/5 border border-white/5 px-3 py-1.5 rounded-lg text-gray-300">
+                                                #<%= genre %>
+                                            </span>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <span class="text-[10px] text-gray-600 italic">Exploring new territory...</span>
+                                    <% } %>
+                                </div>
+
+                                <a href="/profile/<%= match._id %>" class="block w-full text-center bg-white text-black py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-xl">
+                                    Connect
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-bold"><%= match.name %>, <%= match.age %></h3>
-                    <p class="text-slate-400 text-sm mb-4">"<%= match.bio || 'Feeling the vibe on Ehsaas' %>"</p>
-                    
-                    <div class="flex flex-wrap gap-2">
-                        <% match.commonGenres.forEach(genre => { %>
-                            <span class="text-[10px] uppercase tracking-widest bg-white/5 px-2 py-1 rounded-md text-slate-300">
-                                #<%= genre %>
-                            </span>
-                        <% }) %>
-                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="col-span-full py-32 text-center border-2 border-dashed border-white/10 rounded-[3rem]">
+                    <p class="text-gray-500 text-xl font-medium mb-4">No vibe matches currently in your area.</p>
+                    <a href="/profile" class="text-rose-500 font-bold hover:underline">Update your genres to see more</a>
                 </div>
-            <% }) %>
+            <% } %>
         </div>
     </main>
 
