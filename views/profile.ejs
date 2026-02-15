@@ -2,191 +2,152 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= user.name %> | Ehsaas Profile</title>
+    <title><%= user.name %> | Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         .insta-gradient { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
         .fit-box { width: 100%; height: 100%; object-fit: cover; display: block; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* Digital Aura Backgrounds */
+        .vibe-badge { background: linear-gradient(90deg, #f43f5e, #8b5cf6); cursor: pointer; transition: 0.3s; }
         .aura-minimal { background: radial-gradient(circle at top, #1a1a1a, #000); }
-        .aura-techno { background: radial-gradient(circle at top, #2d004d, #000); }
-        .aura-cottage { background: radial-gradient(circle at top, #002d1a, #000); }
-        .aura-rose { background: radial-gradient(circle at top, #3d0016, #000); }
-
-        .active-tab { border-top: 2px solid white; color: white; opacity: 1 !important; }
-        .tab-btn { transition: all 0.3s ease; opacity: 0.5; }
+        .active-tab { border-top: 2px solid white; color: white; opacity: 1; }
     </style>
 </head>
-<body class="aura-<%= topVibe %> text-white antialiased min-h-screen no-scrollbar transition-all duration-1000">
+<body class="aura-<%= topVibe %> text-white antialiased min-h-screen no-scrollbar">
 
-    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <a href="/explore" class="flex items-center gap-2 group text-gray-400 hover:text-white transition">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline">Home</span>
-            </a>
-
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-gradient-to-tr from-rose-500 to-purple-600 rounded-lg flex items-center justify-center font-black italic shadow-lg">E</div>
-                <span class="font-black tracking-tighter text-lg bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">EHSAAS</span>
-            </div>
-
-            <div class="flex gap-6 items-center">
-                <button onclick="openModal('uploadModal')" class="group text-gray-400 hover:text-rose-500 transition">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                </button>
-                <a href="/logout" class="text-rose-500 text-[10px] font-black uppercase tracking-tighter hover:underline">Logout</a>
-            </div>
+    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3 flex justify-between items-center">
+        <a href="/explore" class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white">Home</a>
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-rose-600 rounded flex items-center justify-center font-black">E</div>
+            <span class="font-black tracking-tighter">EHSAAS</span>
+        </div>
+        <div class="flex gap-4">
+            <% if (isOwner) { %><button onclick="openModal('uploadModal')" class="hover:text-rose-500 transition"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button><% } %>
+            <a href="/logout" class="text-rose-500 text-[10px] font-black uppercase tracking-widest">Logout</a>
         </div>
     </nav>
 
     <main class="max-w-4xl mx-auto pt-10 px-4 pb-20">
         <header class="flex flex-col md:flex-row items-center gap-10 mb-12">
-            <div class="insta-gradient p-1 rounded-full cursor-pointer active:scale-95 transition" onclick="triggerConfetti()">
-                <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-black border-4 border-black overflow-hidden flex items-center justify-center">
-                    <img src="<%= user.profilePic || 'https://via.placeholder.com/150' %>" class="fit-box">
-                </div>
+            <div class="insta-gradient p-1 rounded-full cursor-pointer" onclick="confetti()">
+                <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-black border-4 border-black overflow-hidden"><img src="<%= user.profilePic || 'https://via.placeholder.com/150' %>" class="fit-box"></div>
             </div>
-
             <div class="flex-1 text-center md:text-left">
                 <div class="flex flex-wrap items-center gap-4 mb-4 justify-center md:justify-start">
                     <h2 class="text-2xl font-bold"><%= user.name %></h2>
-                    <button onclick="openModal('editModal')" class="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-white hover:text-black transition-all">
-                        Edit Profile
-                    </button>
+                    <div onclick="openModal('vibeHistoryModal')" class="vibe-badge flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-xl">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <%= user.vibeCount || 0 %> Vibes
+                    </div>
+                    <% if (isOwner) { %><button onclick="openModal('editModal')" class="bg-white/10 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-white hover:text-black">Edit</button><% } %>
                 </div>
-                
-                <div class="flex gap-8 mb-4 justify-center md:justify-start text-sm">
-                    <span><strong><%= posts.length %></strong> posts</span>
-                    <span><strong><%= user.genres.length %></strong> vibes</span>
-                </div>
-                <p class="text-gray-400 text-sm italic"><%= user.bio || "Share your story..." %></p>
+                <p class="text-gray-400 text-sm italic"><%= user.bio %></p>
             </div>
         </header>
 
         <div class="flex justify-center border-t border-white/10 mb-6">
-            <div class="flex gap-12">
-                <button onclick="switchTab('posts')" id="btn-posts" class="tab-btn active-tab py-4 text-xs font-bold uppercase tracking-widest text-white">
-                    Posts
-                </button>
-                <button onclick="switchTab('reels')" id="btn-reels" class="tab-btn py-4 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white">
-                    Reels
-                </button>
-            </div>
+            <button onclick="switchTab('posts')" id="btn-posts" class="active-tab py-4 px-8 text-xs font-bold uppercase tracking-widest">Posts</button>
+            <button onclick="switchTab('reels')" id="btn-reels" class="py-4 px-8 text-gray-400 text-xs font-bold uppercase tracking-widest">Reels</button>
         </div>
 
-        <div id="media-container">
-            <div id="section-posts" class="grid grid-cols-3 gap-1 md:gap-4">
-                <% const images = posts.filter(p => p.type === 'image'); %>
-                <% if(images.length > 0) { %>
-                    <% images.forEach(post => { %>
-                        <div class="aspect-square relative group rounded-lg overflow-hidden border border-white/5 bg-[#111]">
-                            <img src="<%= post.contentUrl %>" class="fit-box hover:scale-105 transition-transform duration-500">
-                        </div>
-                    <% }) %>
-                <% } else { %>
-                    <div class="col-span-3 py-20 text-center text-gray-600 text-sm">No photo posts yet.</div>
-                <% } %>
-            </div>
-
-            <div id="section-reels" class="hidden grid grid-cols-3 gap-1 md:gap-4">
-                <% const videos = posts.filter(p => p.type === 'video'); %>
-                <% if(videos.length > 0) { %>
-                    <% videos.forEach(reel => { %>
-                        <div class="aspect-[9/16] relative group rounded-xl overflow-hidden border border-white/5 bg-black">
-                            <video src="<%= reel.contentUrl %>" class="fit-box" loop muted onmouseover="this.play()" onmouseout="this.pause()"></video>
-                        </div>
-                    <% }) %>
-                <% } else { %>
-                    <div class="col-span-3 py-20 text-center text-gray-600 text-sm">No reels uploaded yet.</div>
-                <% } %>
-            </div>
+        <div id="section-posts" class="grid grid-cols-3 gap-1 md:gap-4">
+            <% posts.filter(p => p.type === 'image').forEach(post => { %>
+                <div class="aspect-square rounded-lg overflow-hidden bg-[#111]"><img src="<%= post.contentUrl %>" class="fit-box"></div>
+            <% }) %>
+        </div>
+        <div id="section-reels" class="hidden grid grid-cols-3 gap-1 md:gap-4">
+            <% posts.filter(p => p.type === 'video').forEach(reel => { %>
+                <div class="aspect-[9/16] rounded-xl overflow-hidden bg-black"><video src="<%= reel.contentUrl %>" class="fit-box" loop muted onmouseover="this.play()" onmouseout="this.pause()"></video></div>
+            <% }) %>
         </div>
     </main>
 
-    <div id="editModal" class="fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center p-4">
+    <div id="vibeHistoryModal" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center p-4">
         <div class="bg-[#1a1a1a] w-full max-w-sm rounded-3xl p-6 border border-white/10 shadow-2xl">
-            <h3 class="text-center font-bold mb-6 uppercase text-rose-500 text-xs tracking-widest">Update Vibe</h3>
-            <form id="edit-form" class="space-y-4">
-                <div class="text-center mb-2">
-                    <label class="block text-[10px] text-gray-500 uppercase font-bold mb-1">Profile Photo</label>
-                    <input type="file" name="profilePic" class="text-[10px] text-gray-500 block w-full">
-                </div>
-                <input type="text" name="name" value="<%= user.name %>" class="w-full bg-black border border-white/10 p-3 rounded-xl outline-none focus:border-rose-500">
-                <textarea name="bio" class="w-full bg-black border border-white/10 p-3 rounded-xl h-20 outline-none focus:border-rose-500"><%= user.bio %></textarea>
-                
-                <div class="grid grid-cols-2 gap-2">
-                    <select name="gender" class="bg-black border border-white/10 p-3 rounded-xl text-xs outline-none">
-                        <option value="male" <%= user.gender === 'male' ? 'selected' : '' %>>Male</option>
-                        <option value="female" <%= user.gender === 'female' ? 'selected' : '' %>>Female</option>
-                        <option value="other" <%= user.gender === 'other' ? 'selected' : '' %>>Other</option>
-                    </select>
-                    <select name="interestedIn" class="bg-black border border-white/10 p-3 rounded-xl text-xs outline-none">
-                        <option value="male" <%= user.interestedIn === 'male' ? 'selected' : '' %>>Male</option>
-                        <option value="female" <%= user.interestedIn === 'female' ? 'selected' : '' %>>Female</option>
-                        <option value="other" <%= user.interestedIn === 'other' ? 'selected' : '' %>>Other</option>
-                    </select>
-                </div>
-
-                <input type="text" name="genres" value="<%= user.genres.join(', ') %>" class="w-full bg-black border border-white/10 p-3 rounded-xl outline-none" placeholder="genres (coding, music...)">
-                
-                <button type="button" id="save-profile-btn" class="w-full bg-white text-black py-3 rounded-xl font-bold uppercase text-xs hover:bg-rose-500 hover:text-white transition shadow-lg">Save Changes</button>
-                <button type="button" onclick="closeModal('editModal')" class="w-full text-xs text-gray-600 mt-2 font-bold">Cancel</button>
-            </form>
+            <h3 class="text-center font-bold mb-6 text-rose-500 text-xs uppercase tracking-widest">Received Vibes</h3>
+            <div class="max-h-80 overflow-y-auto no-scrollbar space-y-4">
+                <% if(vibeSenders.length > 0) { vibeSenders.forEach(sender => { %>
+                    <div id="vibe-row-<%= sender._id %>" class="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
+                        <a href="/user/<%= sender._id %>" class="flex items-center gap-3">
+                            <img src="<%= sender.profilePic || 'https://via.placeholder.com/50' %>" class="w-10 h-10 rounded-full object-cover">
+                            <div>
+                                <span class="font-bold text-sm block"><%= sender.name %></span>
+                                <% if (isOwner && myResponseIds.includes(sender._id.toString())) { %>
+                                    <span class="text-[8px] text-emerald-500 font-black uppercase">Mutual Match 🎉</span>
+                                <% } else if (isOwner) { %>
+                                    <span class="text-[8px] text-gray-500 font-black uppercase">Pending</span>
+                                <% } %>
+                            </div>
+                        </a>
+                        <% if(isOwner && !myResponseIds.includes(sender._id.toString())) { %>
+                        <div class="flex gap-2">
+                            <button onclick="handleModalAction('<%= sender._id %>', 'cross')" class="p-2 rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                            <button onclick="handleModalAction('<%= sender._id %>', 'tick')" class="p-2 rounded-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
+                        </div>
+                        <% } %>
+                    </div>
+                <% })} else { %><p class="text-center text-gray-600 text-xs py-10 italic">No vibes yet.</p><% } %>
+            </div>
+            <button onclick="closeModal('vibeHistoryModal')" class="w-full mt-6 text-gray-600 font-bold text-[10px] uppercase">Close</button>
         </div>
     </div>
 
-    <div id="uploadModal" class="fixed inset-0 bg-black/95 z-[100] hidden items-center justify-center p-4">
-        <div class="bg-[#1a1a1a] w-full max-w-md rounded-3xl p-6 border border-white/10">
-            <h3 class="text-center font-bold mb-4 uppercase text-xs tracking-widest">Upload Media</h3>
-            <input type="file" id="file-input" class="text-xs text-gray-500 mb-6 w-full">
-            <button type="button" id="submit-post-btn" class="w-full bg-white text-black py-3 rounded-xl font-black uppercase text-xs hover:bg-rose-500 transition">Share Vibe</button>
-            <button type="button" onclick="closeModal('uploadModal')" class="w-full text-xs text-gray-500 mt-4 text-center font-bold">Cancel</button>
+    <% if (isOwner) { %>
+        <div id="editModal" class="fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center p-4">
+            <div class="bg-[#1a1a1a] p-6 rounded-3xl border border-white/10 w-full max-w-sm">
+                <form id="edit-form" class="space-y-4">
+                    <input type="file" name="profilePic" class="text-xs text-gray-500 w-full">
+                    <input type="text" name="name" value="<%= user.name %>" class="w-full bg-black p-3 rounded-xl border border-white/10 outline-none">
+                    <textarea name="bio" class="w-full bg-black p-3 rounded-xl border border-white/10 outline-none"><%= user.bio %></textarea>
+                    <input type="text" name="genres" value="<%= user.genres.join(', ') %>" class="w-full bg-black p-3 rounded-xl border border-white/10 outline-none">
+                    <button type="button" id="save-profile-btn" class="w-full bg-white text-black py-3 rounded-xl font-bold uppercase text-xs">Save</button>
+                    <button type="button" onclick="closeModal('editModal')" class="w-full text-gray-600 font-bold text-[10px] uppercase mt-2">Cancel</button>
+                </form>
+            </div>
         </div>
-    </div>
+        <div id="uploadModal" class="fixed inset-0 bg-black/95 z-[100] hidden items-center justify-center p-4">
+            <div class="bg-[#1a1a1a] p-8 rounded-3xl border border-white/10 w-full max-w-md">
+                <input type="file" id="file-input" class="text-xs mb-6 w-full">
+                <button type="button" id="submit-post-btn" class="w-full bg-white text-black py-3 rounded-xl font-black uppercase text-xs">Share Vibe</button>
+                <button type="button" onclick="closeModal('uploadModal')" class="w-full text-gray-600 font-bold text-[10px] uppercase mt-4 text-center">Cancel</button>
+            </div>
+        </div>
+    <% } %>
 
     <script>
         function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
         function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
-        function triggerConfetti() { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); }
-
         function switchTab(tab) {
-            const sections = { posts: 'section-posts', reels: 'section-reels' };
-            const buttons = { posts: 'btn-posts', reels: 'btn-reels' };
-            
-            Object.keys(sections).forEach(key => {
-                const section = document.getElementById(sections[key]);
-                const button = document.getElementById(buttons[key]);
-                if (key === tab) {
-                    section.classList.remove('hidden');
-                    button.classList.add('active-tab', 'text-white');
-                    button.classList.remove('text-gray-400');
-                } else {
-                    section.classList.add('hidden');
-                    button.classList.remove('active-tab', 'text-white');
-                    button.classList.add('text-gray-400');
-                }
-            });
+            const p = document.getElementById('section-posts'), r = document.getElementById('section-reels');
+            const bp = document.getElementById('btn-posts'), br = document.getElementById('btn-reels');
+            if(tab === 'posts'){ p.classList.remove('hidden'); r.classList.add('hidden'); bp.classList.add('active-tab'); br.classList.remove('active-tab'); }
+            else { r.classList.remove('hidden'); p.classList.add('hidden'); br.classList.add('active-tab'); bp.classList.remove('active-tab'); }
         }
 
-        document.getElementById('save-profile-btn').addEventListener('click', () => {
-            const fd = new FormData(document.getElementById('edit-form'));
-            fetch('/profile/edit', { method: 'POST', body: fd })
-            .then(res => res.ok ? window.location.reload() : alert("Update Failed"));
-        });
+        async function handleModalAction(userId, action) {
+            const res = await fetch('/api/vibe-action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ toUserId: userId, action })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if(action === 'tick') window.location.reload(); 
+                else document.getElementById(`vibe-row-${userId}`).remove();
+            }
+        }
 
-        document.getElementById('submit-post-btn').addEventListener('click', () => {
-            const file = document.getElementById('file-input').files[0];
-            if(!file) return alert("Select a file!");
-            const fd = new FormData();
-            fd.append('postImage', file);
-            fetch('/upload', { method: 'POST', body: fd })
-            .then(res => res.ok ? window.location.reload() : alert("Upload Failed"));
-        });
+        <% if(isOwner) { %>
+            document.getElementById('save-profile-btn').addEventListener('click', () => {
+                const fd = new FormData(document.getElementById('edit-form'));
+                fetch('/profile/edit', { method: 'POST', body: fd }).then(res => res.ok ? window.location.reload() : alert("Fail"));
+            });
+            document.getElementById('submit-post-btn').addEventListener('click', () => {
+                const fd = new FormData(); fd.append('postImage', document.getElementById('file-input').files[0]);
+                fetch('/upload', { method: 'POST', body: fd }).then(res => res.ok ? window.location.reload() : alert("Fail"));
+            });
+        <% } %>
     </script>
 </body>
 </html>

@@ -5,71 +5,85 @@
     <title>Explore | Ehsaas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .vibe-card { transition: all 0.4s ease; }
-        .vibe-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(225, 29, 72, 0.15); }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .vibe-tag { background: linear-gradient(90deg, #f43f5e, #8b5cf6); }
     </style>
 </head>
-<body class="bg-[#050505] text-white min-h-screen font-sans">
+<body class="bg-[#050505] text-white min-h-screen">
 
-    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 px-8 py-4 flex justify-between items-center">
-        <a href="/profile" class="text-rose-500 font-black text-2xl tracking-tighter italic">EHSAAS</a>
-        <div class="flex gap-8 items-center text-sm font-bold">
-            <a href="/profile" class="hover:text-rose-500 transition">MY PROFILE</a>
-            <a href="/logout" class="bg-rose-600/10 text-rose-500 px-4 py-2 rounded-full hover:bg-rose-600 hover:text-white transition">LOGOUT</a>
+    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-rose-600 rounded flex items-center justify-center font-black">E</div>
+                <span class="font-black tracking-tighter text-lg">EHSAAS</span>
+            </div>
+            <div class="flex gap-6 items-center">
+                <a href="/profile" class="text-gray-400 hover:text-white transition text-xs font-bold uppercase tracking-widest">My Profile</a>
+                <a href="/logout" class="text-rose-500 text-xs font-black uppercase tracking-widest">Logout</a>
+            </div>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto py-16 px-6">
-        <header class="mb-12">
-            <h1 class="text-5xl font-black tracking-tight mb-4">Discover Your <span class="text-rose-500">Vibe.</span></h1>
-            <p class="text-gray-400 text-lg">Curated matches based on your unique interests.</p>
-        </header>
+    <main class="max-w-6xl mx-auto px-4 py-10">
+        <div class="mb-10 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-black tracking-tight mb-2">Discover Vibes</h1>
+                <p class="text-gray-500 text-sm">Find your mutual frequency.</p>
+            </div>
+        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="explore-grid">
             <% if (matches.length > 0) { %>
                 <% matches.forEach(match => { %>
-                    <div class="vibe-card bg-[#111] rounded-[2.5rem] overflow-hidden border border-white/10 flex flex-col">
-                        <div class="h-80 relative">
-                            <img src="<%= match.profilePic || 'https://via.placeholder.com/400' %>" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent"></div>
-                            <div class="absolute top-6 right-6 bg-black/60 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20">
-                                <span class="text-rose-500 font-black text-sm"><%= match.percent %>% Match</span>
+                    <div id="card-<%= match._id %>" class="glass-card rounded-[3rem] overflow-hidden p-5 relative flex flex-col h-full">
+                        
+                        <a href="/user/<%= match._id %>" class="group block mb-6">
+                            <div class="relative aspect-square rounded-[2.5rem] overflow-hidden">
+                                <img src="<%= match.profilePic || 'https://via.placeholder.com/400?text=No+Vibe' %>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                <div class="absolute top-4 right-4 vibe-tag px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-xl"><%= match.percent %>%</div>
                             </div>
-                        </div>
+                            <h3 class="text-xl font-bold mt-6 text-center"><%= match.name %></h3>
+                        </a>
 
-                        <div class="p-8 pt-0 flex-1 flex flex-col">
-                            <h3 class="text-2xl font-bold mb-2"><%= match.name %></h3>
-                            <p class="text-gray-400 text-sm mb-6 line-clamp-2"><%= match.bio || 'No bio shared yet.' %></p>
+                        <div class="flex justify-center gap-8 mt-auto pb-4">
+                            <button onclick="handleAction('<%= match._id %>', 'cross')" class="w-16 h-16 rounded-full border-2 border-rose-500/20 flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-lg hover:scale-110">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
 
-                            <div class="mt-auto">
-                                <h4 class="text-[10px] uppercase tracking-widest font-black text-rose-500 mb-3">Shared Vibes</h4>
-                                <div class="flex flex-wrap gap-2 mb-8">
-                                    <% if (match.common && match.common.length > 0) { %>
-                                        <% match.common.forEach(genre => { %>
-                                            <span class="text-[10px] bg-white/5 border border-white/5 px-3 py-1.5 rounded-lg text-gray-300">
-                                                #<%= genre %>
-                                            </span>
-                                        <% }) %>
-                                    <% } else { %>
-                                        <span class="text-[10px] text-gray-600 italic">Exploring new territory...</span>
-                                    <% } %>
-                                </div>
-
-                                <a href="/profile/<%= match._id %>" class="block w-full text-center bg-white text-black py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-xl">
-                                    Connect
-                                </a>
-                            </div>
+                            <button onclick="handleAction('<%= match._id %>', 'tick')" class="w-16 h-16 rounded-full border-2 border-emerald-500/20 flex items-center justify-center text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all shadow-lg hover:scale-110">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </button>
                         </div>
                     </div>
                 <% }) %>
             <% } else { %>
-                <div class="col-span-full py-32 text-center border-2 border-dashed border-white/10 rounded-[3rem]">
-                    <p class="text-gray-500 text-xl font-medium mb-4">No vibe matches currently in your area.</p>
-                    <a href="/profile" class="text-rose-500 font-bold hover:underline">Update your genres to see more</a>
+                <div class="col-span-full py-20 text-center glass-card rounded-[2.5rem]">
+                    <h2 class="text-lg font-bold">End of the vibe...</h2>
+                    <p class="text-gray-500 text-sm mt-2">Come back later for new matches!</p>
                 </div>
             <% } %>
         </div>
     </main>
 
+    <script>
+        async function handleAction(userId, action) {
+            const res = await fetch('/api/vibe-action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ toUserId: userId, action })
+            });
+            const data = await res.json();
+            
+            const card = document.getElementById(`card-${userId}`);
+            card.style.transform = action === 'tick' ? 'translateX(300px) rotate(20deg)' : 'translateX(-300px) rotate(-20deg)';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.remove();
+                if (data.match) alert(data.message);
+                else if (action === 'tick') alert(data.message);
+            }, 500);
+        }
+    </script>
 </body>
 </html>

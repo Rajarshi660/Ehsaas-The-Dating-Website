@@ -5,50 +5,36 @@
     <title>Join Ehsaas</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#050505] text-white min-h-screen flex items-center justify-center p-6">
-
-    <div class="w-full max-w-md bg-[#111] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
-        <header class="text-center mb-8">
-            <div class="w-12 h-12 bg-rose-600 rounded-2xl mx-auto mb-4 flex items-center justify-center font-black italic shadow-lg shadow-rose-600/20">E</div>
-            <h1 class="text-3xl font-black tracking-tight">Create Account</h1>
-            <p class="text-gray-500 text-sm mt-2">Start matching based on your vibe.</p>
-        </header>
-
-        <form action="/auth/signup" method="POST" class="space-y-5">
-            <input type="text" name="name" placeholder="Full Name" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500 transition" required>
-            <input type="email" name="email" placeholder="Email Address" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500 transition" required>
-            <input type="password" name="password" placeholder="Create Password" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500 transition" required>
-
+<body class="bg-black text-white flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md p-8 bg-[#111] rounded-[2.5rem] border border-white/5 shadow-2xl">
+        <h2 class="text-3xl font-black text-center mb-8">Create Your Vibe</h2>
+        <form action="/auth/signup" method="POST" class="space-y-4">
+            <input type="text" name="name" placeholder="Full Name" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500" required>
+            <input type="email" name="email" placeholder="Email" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500" required>
+            <input type="password" name="password" placeholder="Password" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500" required>
+            
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-[10px] uppercase font-black text-gray-500 mb-2 tracking-widest px-2">My Gender</label>
-                    <select name="gender" class="w-full bg-black border border-white/10 p-4 rounded-2xl text-sm outline-none focus:border-rose-500 transition" required>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] uppercase font-black text-gray-500 mb-2 tracking-widest px-2">Interested In</label>
-                    <select name="interestedIn" class="w-full bg-black border border-white/10 p-4 rounded-2xl text-sm outline-none focus:border-rose-500 transition" required>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
+                <select name="gender" class="bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500" required>
+                    <option value="" disabled selected>My Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+                <select name="interestedIn" class="bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500" required>
+                    <option value="" disabled selected>Interested In</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
             </div>
 
-            <input type="text" name="genres" placeholder="Your Vibes (Coding, Music, Art...)" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500 transition" required>
-
-            <button type="submit" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-xl">
+            <input type="text" name="genres" placeholder="Interests (coding, music, art...)" class="w-full bg-black border border-white/10 p-4 rounded-2xl outline-none focus:border-rose-500">
+            
+            <button type="submit" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-rose-500 hover:text-white transition shadow-xl">
                 Get Started
             </button>
         </form>
-
-        <p class="text-center text-xs text-gray-600 mt-8 font-bold">
-            Already have an account? <a href="/login" class="text-rose-500 hover:underline">Login</a>
+        <p class="text-center mt-6 text-gray-500 text-xs font-bold uppercase tracking-widest">
+            Already have a vibe? <a href="/login" class="text-white hover:text-rose-500">Login</a>
         </p>
     </div>
-
 </body>
 </html>
