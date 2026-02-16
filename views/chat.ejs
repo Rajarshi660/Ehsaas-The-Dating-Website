@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat | <%= receiver.name %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .message-in { background: #1a1a1a; border: 1px solid rgba(255,255,255,0.05); align-self: flex-start; border-radius: 1.5rem 1.5rem 1.5rem 0.2rem; }
+        .message-out { background: linear-gradient(45deg, #f43f5e, #e11d48); align-self: flex-end; border-radius: 1.5rem 1.5rem 0.2rem 1.5rem; }
+    </style>
+</head>
+<body class="bg-[#050505] text-white h-screen flex flex-col overflow-hidden">
+
+    <header class="p-4 border-b border-white/5 bg-black/80 backdrop-blur-md flex items-center gap-4">
+        <a href="/profile" class="text-gray-500 hover:text-white transition">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </a>
+        <img src="<%= receiver.profilePic || 'https://via.placeholder.com/50' %>" class="w-10 h-10 rounded-full object-cover">
+        <div>
+            <h2 class="font-bold text-sm"><%= receiver.name %></h2>
+            <span class="text-[8px] text-emerald-500 font-black uppercase tracking-widest">Mutual Vibe</span>
+        </div>
+    </header>
+
+    <main id="chat-window" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar flex flex-col">
+        <div id="messages" class="flex flex-col space-y-4">
+            <% chatHistory.forEach(chat => { %>
+                <div class="max-w-[80%] p-4 text-sm shadow-xl <%= chat.sender.toString() === currentUser.id ? 'message-out' : 'message-in' %>">
+                    <%= chat.text %>
+                </div>
+            <% }) %>
+        </div>
+    </main>
+
+    <footer class="p-4 bg-black border-t border-white/5">
+        <form id="chat-form" class="flex gap-3 max-w-4xl mx-auto">
+            <input type="text" id="message-input" placeholder="Type a message..." class="flex-1 bg-[#111] border border-white/5 rounded-2xl px-6 py-4 text-sm outline-none focus:border-rose-500">
+            <button type="submit" class="w-14 h-14 bg-rose-600 rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </form>
+    </footer>
+
+    <script>
+        const socket = io();
+        const chatWindow = document.getElementById('chat-window');
+        const messagesDiv = document.getElementById('messages');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+
+        const senderId = "<%= currentUser.id %>";
+        const room = "<%= room %>";
+
+        // Auto-scroll to bottom on load
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        socket.emit('joinRoom', room);
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const msg = messageInput.value.trim();
+            if (msg) {
+                socket.emit('chatMessage', { room, msg, senderId });
+                messageInput.value = '';
+            }
+        });
+
+        socket.on('message', (data) => {
+            const div = document.createElement('div');
+            const isMe = data.senderId === senderId;
+            div.className = `max-w-[80%] p-4 text-sm shadow-xl ${isMe ? 'message-out' : 'message-in'}`;
+            div.textContent = data.msg;
+            messagesDiv.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+    </script>
+</body>
+</html>

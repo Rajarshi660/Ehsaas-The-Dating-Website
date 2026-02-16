@@ -4,19 +4,26 @@ const session = require('express-session');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const http = require('http'); 
+const socketio = require('socket.io'); 
 require('dotenv').config();
 
 const User = require('./models/User');
 const Post = require('./models/Post');
 const VibeAction = require('./models/VibeAction');
+const Message = require('./models/Message'); 
 
 const app = express();
+const server = http.createServer(app); 
+const io = socketio(server); 
 const PORT = 5000;
 
+// --- DATABASE ---
 mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ehsaas")
-    .then(() => console.log("✅ Ehsaas Engine Synchronized"))
+    .then(() => console.log("✅ Ehsaas Engine Connected"))
     .catch(err => console.error(err));
 
+// --- STORAGE SETUP ---
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = './public/uploads/';
@@ -27,6 +34,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// --- MIDDLEWARE ---
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -38,13 +46,12 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// --- MIDDLEWARE ---
 app.use((req, res, next) => {
     res.locals.currentUser = req.session.user || null;
     next();
 });
 
-// --- AUTH ---
+// --- AUTH ROUTES ---
 app.get('/', (req, res) => res.render('landing'));
 app.get('/login', (req, res) => res.render('login'));
 app.get('/signup', (req, res) => res.render('signup'));
@@ -70,7 +77,15 @@ app.post('/auth/login', async (req, res) => {
     res.status(401).send("Invalid credentials.");
 });
 
-// --- EXPLORE & ACTIONS ---
+// --- LOGOUT (FIXED) ---
+app.get('/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.clearCookie('connect.sid');
+        res.redirect('/login');
+    });
+});
+
+// --- EXPLORE & VIBE ACTIONS ---
 app.get('/explore', async (req, res) => {
     if (!req.session.user) return res.redirect('/login');
     try {
@@ -109,22 +124,38 @@ app.post('/api/vibe-action', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// --- UPDATED PROFILE FETCHING ---
+// --- CHAT WITH PERSISTENT HISTORY ---
+app.get('/chat/:id', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    try {
+        const receiver = await User.findById(req.params.id);
+        const meId = req.session.user.id;
+        
+        const check1 = await VibeAction.findOne({ fromUser: meId, toUser: receiver._id, action: 'tick' });
+        const check2 = await VibeAction.findOne({ fromUser: receiver._id, toUser: meId, action: 'tick' });
+        if (!check1 || !check2) return res.send("Mutual Vibe Required to Chat.");
+
+        const room = [meId, receiver._id.toString()].sort().join('_');
+        const chatHistory = await Message.find({ room }).sort({ createdAt: 1 });
+
+        res.render('chat', { receiver, chatHistory, room, currentUser: req.session.user });
+    } catch (err) { res.status(500).send("Chat Error"); }
+});
+
+// --- PROFILE LOGIC ---
 const fetchFullProfile = async (targetId, currentUserId) => {
     const user = await User.findById(targetId);
     const posts = await Post.find({ user: targetId }).sort({ createdAt: -1 });
-    
-    // Get everyone who liked this user
-    const receivedVibes = await VibeAction.find({ toUser: targetId, action: 'tick' })
-        .populate('fromUser', 'name profilePic');
+    const receivedVibes = await VibeAction.find({ toUser: targetId, action: 'tick' }).populate('fromUser', 'name profilePic');
     const vibeSenders = receivedVibes.map(v => v.fromUser);
 
-    // Get everyone the current viewer (me) has already acted upon
     const myActions = await VibeAction.find({ fromUser: currentUserId });
+    const myTickIds = myActions.filter(a => a.action === 'tick').map(a => a.toUser.toString());
     const myResponseIds = myActions.map(a => a.toUser.toString());
 
+    const mutualMatchIds = vibeSenders.filter(sender => myTickIds.includes(sender._id.toString())).map(sender => sender._id.toString());
     const topVibe = posts.length ? posts[0].vibe : 'minimal';
-    return { user, posts, vibeSenders, myResponseIds, topVibe };
+    return { user, posts, vibeSenders, myResponseIds, mutualMatchIds, topVibe };
 };
 
 app.get('/profile', async (req, res) => {
@@ -139,6 +170,7 @@ app.get('/user/:id', async (req, res) => {
     res.render('profile', { ...data, isOwner: false });
 });
 
+// --- MEDIA UPLOADS ---
 app.post('/profile/edit', upload.single('profilePic'), async (req, res) => {
     const { name, bio, genres, gender, interestedIn } = req.body;
     const update = { name, bio, gender, interestedIn, genres: genres.split(',').map(g => g.trim()) };
@@ -153,5 +185,24 @@ app.post('/upload', upload.single('postImage'), async (req, res) => {
     res.json({ success: true });
 });
 
-app.get('/logout', (req, res) => req.session.destroy(() => res.redirect('/login')));
-app.listen(PORT, () => console.log(`🚀 EHSAAS: http://localhost:${PORT}`));
+// --- SOCKET.IO ---
+io.on('connection', (socket) => {
+    socket.on('joinRoom', (room) => socket.join(room));
+
+    socket.on('chatMessage', async (data) => {
+        try {
+            const newMessage = new Message({
+                room: data.room,
+                sender: data.senderId,
+                text: data.msg
+            });
+            await newMessage.save();
+            io.to(data.room).emit('message', {
+                msg: data.msg,
+                senderId: data.senderId
+            });
+        } catch (err) { console.error(err); }
+    });
+});
+
+server.listen(PORT, () => console.log(`🚀 EHSAAS REAL-TIME: http://localhost:${PORT}`));

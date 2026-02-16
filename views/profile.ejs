@@ -40,14 +40,22 @@
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                         <%= user.vibeCount || 0 %> Vibes
                     </div>
-                    <% if (isOwner) { %><button onclick="openModal('editModal')" class="bg-white/10 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-white hover:text-black">Edit</button><% } %>
+                    
+                    <% if (isOwner) { %>
+                        <button onclick="openModal('editModal')" class="bg-white/10 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-white hover:text-black">Edit</button>
+                    <% } else if (mutualMatchIds.includes(user._id.toString())) { %>
+                        <a href="/chat/<%= user._id %>" class="bg-blue-600 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            Message
+                        </a>
+                    <% } %>
                 </div>
                 <p class="text-gray-400 text-sm italic"><%= user.bio %></p>
             </div>
         </header>
 
         <div class="flex justify-center border-t border-white/10 mb-6">
-            <button onclick="switchTab('posts')" id="btn-posts" class="active-tab py-4 px-8 text-xs font-bold uppercase tracking-widest">Posts</button>
+            <button onclick="switchTab('posts')" id="btn-posts" class="py-4 px-8 text-xs font-bold uppercase tracking-widest active-tab">Posts</button>
             <button onclick="switchTab('reels')" id="btn-reels" class="py-4 px-8 text-gray-400 text-xs font-bold uppercase tracking-widest">Reels</button>
         </div>
 
@@ -63,9 +71,9 @@
         </div>
     </main>
 
-    <div id="vibeHistoryModal" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center p-4">
+    <div id="vibeHistoryModal" class="fixed inset-0 bg-black/95 z-[100] hidden items-center justify-center p-4">
         <div class="bg-[#1a1a1a] w-full max-w-sm rounded-3xl p-6 border border-white/10 shadow-2xl">
-            <h3 class="text-center font-bold mb-6 text-rose-500 text-xs uppercase tracking-widest">Received Vibes</h3>
+            <h3 class="text-center font-bold mb-6 text-rose-500 text-xs uppercase tracking-widest">Vibe Interactions</h3>
             <div class="max-h-80 overflow-y-auto no-scrollbar space-y-4">
                 <% if(vibeSenders.length > 0) { vibeSenders.forEach(sender => { %>
                     <div id="vibe-row-<%= sender._id %>" class="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
@@ -73,19 +81,25 @@
                             <img src="<%= sender.profilePic || 'https://via.placeholder.com/50' %>" class="w-10 h-10 rounded-full object-cover">
                             <div>
                                 <span class="font-bold text-sm block"><%= sender.name %></span>
-                                <% if (isOwner && myResponseIds.includes(sender._id.toString())) { %>
+                                <% if (isOwner && mutualMatchIds.includes(sender._id.toString())) { %>
                                     <span class="text-[8px] text-emerald-500 font-black uppercase">Mutual Match 🎉</span>
                                 <% } else if (isOwner) { %>
                                     <span class="text-[8px] text-gray-500 font-black uppercase">Pending</span>
                                 <% } %>
                             </div>
                         </a>
-                        <% if(isOwner && !myResponseIds.includes(sender._id.toString())) { %>
                         <div class="flex gap-2">
-                            <button onclick="handleModalAction('<%= sender._id %>', 'cross')" class="p-2 rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-                            <button onclick="handleModalAction('<%= sender._id %>', 'tick')" class="p-2 rounded-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
+                            <% if (isOwner && mutualMatchIds.includes(sender._id.toString())) { %>
+                                <a href="/chat/<%= sender._id %>" class="p-2 rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                </a>
+                            <% } %>
+
+                            <% if(isOwner && !myResponseIds.includes(sender._id.toString())) { %>
+                                <button onclick="handleModalAction('<%= sender._id %>', 'cross')" class="p-2 rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500 transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                                <button onclick="handleModalAction('<%= sender._id %>', 'tick')" class="p-2 rounded-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
+                            <% } %>
                         </div>
-                        <% } %>
                     </div>
                 <% })} else { %><p class="text-center text-gray-600 text-xs py-10 italic">No vibes yet.</p><% } %>
             </div>
@@ -95,22 +109,21 @@
 
     <% if (isOwner) { %>
         <div id="editModal" class="fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center p-4">
-            <div class="bg-[#1a1a1a] p-6 rounded-3xl border border-white/10 w-full max-w-sm">
+            <div class="bg-[#1a1a1a] p-6 rounded-3xl border border-white/10 w-full max-w-sm text-center">
                 <form id="edit-form" class="space-y-4">
                     <input type="file" name="profilePic" class="text-xs text-gray-500 w-full">
                     <input type="text" name="name" value="<%= user.name %>" class="w-full bg-black p-3 rounded-xl border border-white/10 outline-none">
                     <textarea name="bio" class="w-full bg-black p-3 rounded-xl border border-white/10 outline-none"><%= user.bio %></textarea>
-                    <input type="text" name="genres" value="<%= user.genres.join(', ') %>" class="w-full bg-black p-3 rounded-xl border border-white/10 outline-none">
                     <button type="button" id="save-profile-btn" class="w-full bg-white text-black py-3 rounded-xl font-bold uppercase text-xs">Save</button>
-                    <button type="button" onclick="closeModal('editModal')" class="w-full text-gray-600 font-bold text-[10px] uppercase mt-2">Cancel</button>
+                    <button type="button" onclick="closeModal('editModal')" class="mt-2 text-gray-600 font-bold text-[10px] uppercase">Cancel</button>
                 </form>
             </div>
         </div>
         <div id="uploadModal" class="fixed inset-0 bg-black/95 z-[100] hidden items-center justify-center p-4">
-            <div class="bg-[#1a1a1a] p-8 rounded-3xl border border-white/10 w-full max-w-md">
+            <div class="bg-[#1a1a1a] p-8 rounded-3xl border border-white/10 w-full max-w-md text-center">
                 <input type="file" id="file-input" class="text-xs mb-6 w-full">
                 <button type="button" id="submit-post-btn" class="w-full bg-white text-black py-3 rounded-xl font-black uppercase text-xs">Share Vibe</button>
-                <button type="button" onclick="closeModal('uploadModal')" class="w-full text-gray-600 font-bold text-[10px] uppercase mt-4 text-center">Cancel</button>
+                <button type="button" onclick="closeModal('uploadModal')" class="mt-4 text-gray-600 font-bold text-[10px] uppercase">Cancel</button>
             </div>
         </div>
     <% } %>
@@ -121,8 +134,8 @@
         function switchTab(tab) {
             const p = document.getElementById('section-posts'), r = document.getElementById('section-reels');
             const bp = document.getElementById('btn-posts'), br = document.getElementById('btn-reels');
-            if(tab === 'posts'){ p.classList.remove('hidden'); r.classList.add('hidden'); bp.classList.add('active-tab'); br.classList.remove('active-tab'); }
-            else { r.classList.remove('hidden'); p.classList.add('hidden'); br.classList.add('active-tab'); bp.classList.remove('active-tab'); }
+            if(tab === 'posts'){ p.classList.remove('hidden'); r.classList.add('hidden'); bp.classList.add('active-tab'); bp.classList.remove('text-gray-400'); br.classList.remove('active-tab'); br.classList.add('text-gray-400'); }
+            else { r.classList.remove('hidden'); p.classList.add('hidden'); br.classList.add('active-tab'); br.classList.remove('text-gray-400'); bp.classList.remove('active-tab'); bp.classList.add('text-gray-400'); }
         }
 
         async function handleModalAction(userId, action) {
