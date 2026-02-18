@@ -1,0 +1,75 @@
+<div id="matchRequestModal" class="fixed inset-0 bg-black/95 z-[120] hidden items-center justify-center p-4">
+    <div class="bg-[#0f0f0f] w-full max-w-sm rounded-[2rem] p-8 border border-white/10 shadow-2xl">
+        <h3 class="text-center font-black mb-8 text-rose-500 text-[10px] uppercase tracking-[0.4em]">New Auras</h3>
+        <div class="space-y-4 max-h-80 overflow-y-auto no-scrollbar">
+            <% if(locals.pendingMatches && pendingMatches.length > 0) { %>
+                <% pendingMatches.forEach(match => { %>
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                        <a href="/user/<%= match._id %>" class="flex items-center gap-3">
+                            <img src="<%= match.profilePic %>" class="w-10 h-10 rounded-full object-cover">
+                            <span class="font-bold text-sm text-white"><%= match.name %></span>
+                        </a>
+                        <div class="flex gap-2">
+                            <button onclick="handleVibeResponse('<%= match._id %>', 'cross')" class="p-2 bg-rose-500/10 text-rose-500 rounded-full">❌</button>
+                            <button onclick="handleVibeResponse('<%= match._id %>', 'tick')" class="p-2 bg-emerald-500/10 text-emerald-500 rounded-full">✅</button>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %><p class="text-center text-gray-700 text-[10px] py-10 uppercase tracking-widest">No new vibrations</p><% } %>
+        </div>
+        <button onclick="closeModal('matchRequestModal')" class="w-full mt-8 text-gray-600 font-bold text-[10px] uppercase">Close</button>
+    </div>
+</div>
+
+<div id="chatListModal" class="fixed inset-0 bg-black/95 z-[120] hidden items-center justify-center p-4">
+    <div class="bg-[#0f0f0f] w-full max-w-sm rounded-[2rem] p-8 border border-white/10 shadow-2xl">
+        <h3 class="text-center font-black mb-8 text-blue-500 text-[10px] uppercase tracking-[0.4em]">Connections</h3>
+        <div class="space-y-4 max-h-80 overflow-y-auto no-scrollbar">
+            <% if(locals.confirmedChats && confirmedChats.length > 0) { %>
+                <% confirmedChats.forEach(chat => { %>
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                        <div class="flex items-center gap-3 text-white">
+                            <img src="<%= chat.profilePic %>" class="w-10 h-10 rounded-full object-cover">
+                            <span class="font-bold text-sm"><%= chat.name %></span>
+                        </div>
+                        <a href="/chat/<%= chat._id %>" class="p-3 bg-blue-500/10 text-blue-400 rounded-full">💬</a>
+                    </div>
+                <% }) %>
+            <% } else { %><p class="text-center text-gray-700 text-[10px] py-10 uppercase tracking-widest">No active chats</p><% } %>
+        </div>
+        <button onclick="closeModal('chatListModal')" class="w-full mt-8 text-gray-600 font-bold text-[10px] uppercase">Close</button>
+    </div>
+</div>
+
+<div id="uploadModal" class="fixed inset-0 bg-black/95 z-[120] hidden items-center justify-center p-4">
+    <div class="bg-[#0f0f0f] p-10 rounded-[2.5rem] border border-white/10 w-full max-w-md text-center">
+        <h3 class="font-black text-xs uppercase tracking-[0.3em] mb-8 text-white">Drop a Vibe</h3>
+        <input type="file" id="file-input-global" class="mb-10 w-full text-xs text-gray-500">
+        <button type="button" id="submit-post-btn-global" class="w-full bg-rose-500 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest active:scale-95 transition-all">Post Now</button>
+        <button type="button" onclick="closeModal('uploadModal')" class="mt-6 text-gray-600 font-bold text-[10px] uppercase">Cancel</button>
+    </div>
+</div>
+
+<script>
+    function openModal(id) { document.getElementById(id)?.classList.replace('hidden', 'flex'); }
+    function closeModal(id) { document.getElementById(id)?.classList.replace('flex', 'hidden'); }
+
+    // Fixed Upload Button Logic
+    document.getElementById('submit-post-btn-global')?.addEventListener('click', async () => {
+        const fileInput = document.getElementById('file-input-global');
+        if(!fileInput.files[0]) return alert("Select a file first");
+        const formData = new FormData();
+        formData.append('postImage', fileInput.files[0]);
+        const res = await fetch('/upload', { method: 'POST', body: formData });
+        if(res.ok) window.location.reload();
+    });
+
+    async function handleVibeResponse(userId, action) {
+        await fetch('/api/vibe-action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ toUserId: userId, action })
+        });
+        window.location.reload();
+    }
+</script>

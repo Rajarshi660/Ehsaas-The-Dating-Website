@@ -6,161 +6,153 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        .insta-gradient { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-        .fit-box { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .fit-box { width: 100%; height: 100%; object-fit: cover; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .vibe-badge { background: linear-gradient(90deg, #f43f5e, #8b5cf6); cursor: pointer; transition: 0.3s; }
-        .aura-minimal { background: radial-gradient(circle at top, #1a1a1a, #000); }
         .active-tab { border-top: 2px solid white; color: white; opacity: 1; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+        .aura-minimal { background: radial-gradient(circle at top, #1a1a1a, #000); }
     </style>
 </head>
-<body class="aura-<%= topVibe %> text-white antialiased min-h-screen no-scrollbar">
+<body class="aura-<%= locals.topVibe || 'minimal' %> bg-[#050505] text-white antialiased min-h-screen no-scrollbar">
 
-    <nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3 flex justify-between items-center">
-        <a href="/explore" class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white">Home</a>
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-rose-600 rounded flex items-center justify-center font-black">E</div>
-            <span class="font-black tracking-tighter">EHSAAS</span>
-        </div>
-        <div class="flex gap-4">
-            <% if (isOwner) { %><button onclick="openModal('uploadModal')" class="hover:text-rose-500 transition"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button><% } %>
-            <a href="/logout" class="text-rose-500 text-[10px] font-black uppercase tracking-widest">Logout</a>
-        </div>
-    </nav>
+    <%- include('partials/navbar') %>
 
-    <main class="max-w-4xl mx-auto pt-10 px-4 pb-20">
+    <main class="max-w-4xl mx-auto pt-10 px-4 pb-20 relative z-10">
         <header class="flex flex-col md:flex-row items-center gap-10 mb-12">
-            <div class="insta-gradient p-1 rounded-full cursor-pointer" onclick="confetti()">
-                <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-black border-4 border-black overflow-hidden"><img src="<%= user.profilePic || 'https://via.placeholder.com/150' %>" class="fit-box"></div>
+            <div class="p-1 rounded-full border-2 border-rose-500 relative cursor-pointer group" onclick="confetti()">
+                <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-black overflow-hidden">
+                    <img src="<%= user.profilePic || 'https://via.placeholder.com/150' %>" class="fit-box group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <div class="absolute -bottom-2 right-6 bg-amber-500 text-black px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-xl">
+                    LVL <%= user.level || 1 %>
+                </div>
             </div>
+
             <div class="flex-1 text-center md:text-left">
                 <div class="flex flex-wrap items-center gap-4 mb-4 justify-center md:justify-start">
-                    <h2 class="text-2xl font-bold"><%= user.name %></h2>
-                    <div onclick="openModal('vibeHistoryModal')" class="vibe-badge flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-xl">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        <%= user.vibeCount || 0 %> Vibes
-                    </div>
-                    
+                    <h2 class="text-3xl font-black tracking-tight"><%= user.name %></h2>
                     <% if (isOwner) { %>
-                        <button onclick="openModal('editModal')" class="bg-white/10 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-white hover:text-black">Edit</button>
-                    <% } else if (mutualMatchIds.includes(user._id.toString())) { %>
-                        <a href="/chat/<%= user._id %>" class="bg-blue-600 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                            Message
-                        </a>
+                        <button onclick="openModal('editModal')" class="bg-white/10 px-5 py-2 rounded-xl text-xs font-bold hover:bg-white hover:text-black transition-all">Edit Profile</button>
                     <% } %>
                 </div>
-                <p class="text-gray-400 text-sm italic"><%= user.bio %></p>
+
+                <div class="glass-card rounded-2xl p-4 flex items-center justify-between mb-6 max-w-sm mx-auto md:mx-0">
+                    <div class="flex items-center gap-4">
+                        <span class="text-3xl"><%= user.moodIcon || '✨' %></span>
+                        <div>
+                            <p class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Current Mood</p>
+                            <p class="text-sm italic font-medium"><%= user.currentMood || "Vibing..." %></p>
+                        </div>
+                    </div>
+                    <% if (isOwner) { %>
+                        <button onclick="openModal('moodModal')" class="text-rose-500 text-[10px] font-black uppercase hover:text-white transition">Change</button>
+                    <% } %>
+                </div>
+                <p class="text-gray-400 text-sm leading-relaxed max-w-md"><%= user.bio %></p>
             </div>
         </header>
 
-        <div class="flex justify-center border-t border-white/10 mb-6">
-            <button onclick="switchTab('posts')" id="btn-posts" class="py-4 px-8 text-xs font-bold uppercase tracking-widest active-tab">Posts</button>
-            <button onclick="switchTab('reels')" id="btn-reels" class="py-4 px-8 text-gray-400 text-xs font-bold uppercase tracking-widest">Reels</button>
+        <div class="flex justify-center border-t border-white/5 mb-8">
+            <button onclick="switchTab('posts')" id="btn-posts" class="py-4 px-10 text-[10px] font-black uppercase tracking-widest active-tab">Posts</button>
+            <button onclick="switchTab('reels')" id="btn-reels" class="py-4 px-10 text-gray-500 text-[10px] font-black uppercase tracking-widest">Reels</button>
         </div>
 
         <div id="section-posts" class="grid grid-cols-3 gap-1 md:gap-4">
             <% posts.filter(p => p.type === 'image').forEach(post => { %>
-                <div class="aspect-square rounded-lg overflow-hidden bg-[#111]"><img src="<%= post.contentUrl %>" class="fit-box"></div>
+                <div class="relative group aspect-square rounded-xl overflow-hidden bg-white/5">
+                    <img src="<%= post.contentUrl %>" class="fit-box">
+                    <% if (isOwner) { %>
+                        <button onclick="deletePost('<%= post._id %>')" class="absolute top-3 right-3 p-2 bg-black/60 backdrop-blur-md rounded-full text-rose-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-500 hover:text-white">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    <% } %>
+                </div>
             <% }) %>
         </div>
+
         <div id="section-reels" class="hidden grid grid-cols-3 gap-1 md:gap-4">
             <% posts.filter(p => p.type === 'video').forEach(reel => { %>
-                <div class="aspect-[9/16] rounded-xl overflow-hidden bg-black"><video src="<%= reel.contentUrl %>" class="fit-box" loop muted onmouseover="this.play()" onmouseout="this.pause()"></video></div>
+                <div class="relative group aspect-[9/16] rounded-2xl overflow-hidden bg-black">
+                    <video src="<%= reel.contentUrl %>" class="fit-box" loop muted onmouseover="this.play()" onmouseout="this.pause()"></video>
+                    <% if (isOwner) { %>
+                        <button onclick="deletePost('<%= reel._id %>')" class="absolute top-3 right-3 p-2 bg-black/60 backdrop-blur-md rounded-full text-rose-500 opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-rose-500 hover:text-white">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    <% } %>
+                </div>
             <% }) %>
         </div>
     </main>
 
-    <div id="vibeHistoryModal" class="fixed inset-0 bg-black/95 z-[100] hidden items-center justify-center p-4">
-        <div class="bg-[#1a1a1a] w-full max-w-sm rounded-3xl p-6 border border-white/10 shadow-2xl">
-            <h3 class="text-center font-bold mb-6 text-rose-500 text-xs uppercase tracking-widest">Vibe Interactions</h3>
-            <div class="max-h-80 overflow-y-auto no-scrollbar space-y-4">
-                <% if(vibeSenders.length > 0) { vibeSenders.forEach(sender => { %>
-                    <div id="vibe-row-<%= sender._id %>" class="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                        <a href="/user/<%= sender._id %>" class="flex items-center gap-3">
-                            <img src="<%= sender.profilePic || 'https://via.placeholder.com/50' %>" class="w-10 h-10 rounded-full object-cover">
-                            <div>
-                                <span class="font-bold text-sm block"><%= sender.name %></span>
-                                <% if (isOwner && mutualMatchIds.includes(sender._id.toString())) { %>
-                                    <span class="text-[8px] text-emerald-500 font-black uppercase">Mutual Match 🎉</span>
-                                <% } else if (isOwner) { %>
-                                    <span class="text-[8px] text-gray-500 font-black uppercase">Pending</span>
-                                <% } %>
-                            </div>
-                        </a>
-                        <div class="flex gap-2">
-                            <% if (isOwner && mutualMatchIds.includes(sender._id.toString())) { %>
-                                <a href="/chat/<%= sender._id %>" class="p-2 rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                </a>
-                            <% } %>
+    <%- include('partials/modals') %>
 
-                            <% if(isOwner && !myResponseIds.includes(sender._id.toString())) { %>
-                                <button onclick="handleModalAction('<%= sender._id %>', 'cross')" class="p-2 rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500 transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-                                <button onclick="handleModalAction('<%= sender._id %>', 'tick')" class="p-2 rounded-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 transition"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
-                            <% } %>
-                        </div>
-                    </div>
-                <% })} else { %><p class="text-center text-gray-600 text-xs py-10 italic">No vibes yet.</p><% } %>
-            </div>
-            <button onclick="closeModal('vibeHistoryModal')" class="w-full mt-6 text-gray-600 font-bold text-[10px] uppercase">Close</button>
+    <div id="editModal" class="fixed inset-0 bg-black/90 z-[110] hidden items-center justify-center p-4">
+        <div class="bg-[#0f0f0f] p-8 rounded-[2rem] border border-white/10 w-full max-w-sm shadow-2xl">
+            <h3 class="text-center font-black text-[10px] uppercase tracking-widest text-gray-500 mb-8">Edit Identity</h3>
+            <form id="edit-form" class="space-y-5">
+                <input type="file" name="profilePic" class="w-full text-[10px] text-gray-500 file:bg-white/5 file:border-none file:text-white file:px-4 file:py-2 file:rounded-lg">
+                <input type="text" name="name" value="<%= user.name %>" class="w-full bg-white/5 p-4 rounded-2xl border border-white/5 outline-none focus:border-rose-500 transition text-sm">
+                <textarea name="bio" class="w-full bg-white/5 p-4 rounded-2xl border border-white/5 outline-none focus:border-rose-500 transition text-sm h-28"><%= user.bio %></textarea>
+                <input type="text" name="genres" value="<%= user.genres.join(', ') %>" class="w-full bg-white/5 p-4 rounded-2xl border border-white/5 outline-none focus:border-rose-500 transition text-sm">
+                
+                <button type="button" id="save-profile-btn" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-lg">
+                    Save Changes
+                </button>
+                <button type="button" onclick="closeModal('editModal')" class="w-full mt-2 text-gray-600 font-bold text-[10px] uppercase">Cancel</button>
+            </form>
         </div>
     </div>
 
-    <% if (isOwner) { %>
-        <div id="editModal" class="fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center p-4">
-            <div class="bg-[#1a1a1a] p-6 rounded-3xl border border-white/10 w-full max-w-sm text-center">
-                <form id="edit-form" class="space-y-4">
-                    <input type="file" name="profilePic" class="text-xs text-gray-500 w-full">
-                    <input type="text" name="name" value="<%= user.name %>" class="w-full bg-black p-3 rounded-xl border border-white/10 outline-none">
-                    <textarea name="bio" class="w-full bg-black p-3 rounded-xl border border-white/10 outline-none"><%= user.bio %></textarea>
-                    <button type="button" id="save-profile-btn" class="w-full bg-white text-black py-3 rounded-xl font-bold uppercase text-xs">Save</button>
-                    <button type="button" onclick="closeModal('editModal')" class="mt-2 text-gray-600 font-bold text-[10px] uppercase">Cancel</button>
-                </form>
+    <div id="moodModal" class="fixed inset-0 bg-black/95 z-[110] hidden items-center justify-center p-4">
+        <div class="bg-[#0f0f0f] p-8 rounded-[2rem] text-center border border-white/10 shadow-2xl">
+            <h3 class="font-black text-[10px] uppercase text-gray-500 mb-8 tracking-widest">Select Aura</h3>
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                <button onclick="setMood('🎧', 'Lo-fi Beats')" class="p-4 bg-white/5 rounded-2xl hover:bg-rose-500 hover:scale-110 transition-all text-2xl">🎧</button>
+                <button onclick="setMood('☕', 'Coffee Craving')" class="p-4 bg-white/5 rounded-2xl hover:bg-rose-500 hover:scale-110 transition-all text-2xl">☕</button>
+                <button onclick="setMood('🎮', 'Gaming Mode')" class="p-4 bg-white/5 rounded-2xl hover:bg-rose-500 hover:scale-110 transition-all text-2xl">🎮</button>
+                <button onclick="setMood('🍕', 'Pizza Hunter')" class="p-4 bg-white/5 rounded-2xl hover:bg-rose-500 hover:scale-110 transition-all text-2xl">🍕</button>
             </div>
+            <button onclick="closeModal('moodModal')" class="text-gray-600 font-bold uppercase text-[10px] tracking-widest">Cancel</button>
         </div>
-        <div id="uploadModal" class="fixed inset-0 bg-black/95 z-[100] hidden items-center justify-center p-4">
-            <div class="bg-[#1a1a1a] p-8 rounded-3xl border border-white/10 w-full max-w-md text-center">
-                <input type="file" id="file-input" class="text-xs mb-6 w-full">
-                <button type="button" id="submit-post-btn" class="w-full bg-white text-black py-3 rounded-xl font-black uppercase text-xs">Share Vibe</button>
-                <button type="button" onclick="closeModal('uploadModal')" class="mt-4 text-gray-600 font-bold text-[10px] uppercase">Cancel</button>
-            </div>
-        </div>
-    <% } %>
+    </div>
 
     <script>
-        function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
-        function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
+        function openModal(id) { document.getElementById(id)?.classList.replace('hidden', 'flex'); }
+        function closeModal(id) { document.getElementById(id)?.classList.replace('flex', 'hidden'); }
+        
         function switchTab(tab) {
             const p = document.getElementById('section-posts'), r = document.getElementById('section-reels');
             const bp = document.getElementById('btn-posts'), br = document.getElementById('btn-reels');
-            if(tab === 'posts'){ p.classList.remove('hidden'); r.classList.add('hidden'); bp.classList.add('active-tab'); bp.classList.remove('text-gray-400'); br.classList.remove('active-tab'); br.classList.add('text-gray-400'); }
-            else { r.classList.remove('hidden'); p.classList.add('hidden'); br.classList.add('active-tab'); br.classList.remove('text-gray-400'); bp.classList.remove('active-tab'); bp.classList.add('text-gray-400'); }
-        }
-
-        async function handleModalAction(userId, action) {
-            const res = await fetch('/api/vibe-action', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ toUserId: userId, action })
-            });
-            const data = await res.json();
-            if (data.success) {
-                if(action === 'tick') window.location.reload(); 
-                else document.getElementById(`vibe-row-${userId}`).remove();
+            if(tab === 'posts'){ 
+                p.classList.remove('hidden'); r.classList.add('hidden'); 
+                bp.classList.add('active-tab'); br.classList.remove('active-tab'); 
+                br.classList.add('text-gray-500'); 
+            } else { 
+                r.classList.remove('hidden'); p.classList.add('hidden'); 
+                br.classList.add('active-tab'); bp.classList.remove('active-tab'); 
+                bp.classList.add('text-gray-500'); 
             }
         }
 
-        <% if(isOwner) { %>
-            document.getElementById('save-profile-btn').addEventListener('click', () => {
-                const fd = new FormData(document.getElementById('edit-form'));
-                fetch('/profile/edit', { method: 'POST', body: fd }).then(res => res.ok ? window.location.reload() : alert("Fail"));
-            });
-            document.getElementById('submit-post-btn').addEventListener('click', () => {
-                const fd = new FormData(); fd.append('postImage', document.getElementById('file-input').files[0]);
-                fetch('/upload', { method: 'POST', body: fd }).then(res => res.ok ? window.location.reload() : alert("Fail"));
-            });
-        <% } %>
+        async function setMood(icon, mood) {
+            await fetch('/api/update-mood', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ icon, mood }) });
+            window.location.reload();
+        }
+
+        async function deletePost(id) {
+            if(!confirm("Erase vibe?")) return;
+            const res = await fetch(`/delete-post/${id}`, { method: 'POST' });
+            if(res.ok) window.location.reload();
+        }
+
+        document.getElementById('save-profile-btn')?.addEventListener('click', async (e) => {
+            const btn = e.target;
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+            const res = await fetch('/profile/edit', { method: 'POST', body: new FormData(document.getElementById('edit-form')) });
+            if(res.ok) window.location.reload();
+            else { alert("Save failed."); btn.innerText = "Save Changes"; btn.disabled = false; }
+        });
     </script>
 </body>
 </html>

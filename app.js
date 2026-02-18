@@ -4,26 +4,27 @@ const session = require('express-session');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const http = require('http'); 
-const socketio = require('socket.io'); 
+const http = require('http');
+const socketio = require('socket.io');
 require('dotenv').config();
 
+// Models
 const User = require('./models/User');
 const Post = require('./models/Post');
 const VibeAction = require('./models/VibeAction');
-const Message = require('./models/Message'); 
+const Message = require('./models/Message');
 
 const app = express();
-const server = http.createServer(app); 
-const io = socketio(server); 
-const PORT = 5000;
+const server = http.createServer(app);
+const io = socketio(server);
+const PORT = process.env.PORT || 5000;
 
-// --- DATABASE ---
+// --- DATABASE CONNECTION ---
 mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ehsaas")
-    .then(() => console.log("✅ Ehsaas Engine Connected"))
+    .then(() => console.log("✅ Ehsaas Engine Synchronized"))
     .catch(err => console.error(err));
 
-// --- STORAGE SETUP ---
+// --- STORAGE CONFIG ---
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = './public/uploads/';
@@ -46,38 +47,72 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-app.use((req, res, next) => {
-    res.locals.currentUser = req.session.user || null;
+// Global Middleware for Navbar Counts & Data
+app.use(async (req, res, next) => {
+    if (req.session.user) {
+        try {
+            const user = await User.findById(req.session.user.id);
+            res.locals.currentUser = user;
+            
+            // Pending matches for the Heart Notification Badge
+            const received = await VibeAction.find({ toUser: user._id, action: 'tick' }).populate('fromUser');
+            const myActions = await VibeAction.find({ fromUser: user._id });
+            const myRespondedIds = myActions.map(a => a.toUser.toString());
+            
+            res.locals.pendingCount = received.filter(v => !myRespondedIds.includes(v.fromUser._id.toString())).length;
+        } catch (err) {
+            res.locals.pendingCount = 0;
+        }
+    } else {
+        res.locals.currentUser = null;
+        res.locals.pendingCount = 0;
+    }
     next();
 });
 
-// --- AUTH ROUTES ---
-app.get('/', (req, res) => res.render('landing'));
+// --- AUTH & LANDING ROUTES ---
+app.get('/', (req, res) => res.render('landing')); 
+
 app.get('/login', (req, res) => res.render('login'));
+
 app.get('/signup', (req, res) => res.render('signup'));
 
+// FIXED: Signup Post Route
 app.post('/auth/signup', async (req, res) => {
     try {
         const { name, email, password, gender, interestedIn, genres } = req.body;
         const genresArray = genres ? genres.split(',').map(g => g.trim().toLowerCase()) : [];
-        const newUser = new User({ name, email, password, gender, interestedIn, genres: genresArray });
+        
+        const newUser = new User({ 
+            name, email, password, gender, interestedIn, 
+            genres: genresArray,
+            points: 50, level: 1,
+            currentMood: "Vibing", moodIcon: "✨",
+            profilePic: "/uploads/default-avatar.png" 
+        });
+
         await newUser.save();
         req.session.user = { id: newUser._id, name: newUser.name };
         res.redirect('/profile');
-    } catch (err) { res.status(500).send("Signup Error"); }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Signup Error: Account may already exist.");
+    }
 });
 
+// Fixed: Login Post Route
 app.post('/auth/login', async (req, res) => {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (user && user.password === password) {
-        req.session.user = { id: user._id, name: user.name };
-        return res.redirect('/profile');
-    }
-    res.status(401).send("Invalid credentials.");
+    try {
+        const user = await User.findOne({ email });
+        if (user && user.password === password) {
+            req.session.user = { id: user._id, name: user.name };
+            return res.redirect('/profile');
+        }
+        res.status(401).send("Invalid email or password.");
+    } catch (err) { res.status(500).send("Login Error"); }
 });
 
-// --- LOGOUT (FIXED) ---
 app.get('/logout', (req, res) => {
     req.session.destroy(() => {
         res.clearCookie('connect.sid');
@@ -85,124 +120,139 @@ app.get('/logout', (req, res) => {
     });
 });
 
-// --- EXPLORE & VIBE ACTIONS ---
-app.get('/explore', async (req, res) => {
-    if (!req.session.user) return res.redirect('/login');
+// --- PROFILE EDIT (FIXED FOR SAVE FAILED) ---
+app.post('/profile/edit', upload.single('profilePic'), async (req, res) => {
     try {
-        const me = await User.findById(req.session.user.id);
-        const myActions = await VibeAction.find({ fromUser: me._id });
-        const actedUserIds = myActions.map(a => a.toUser);
+        const { name, bio, genres } = req.body;
+        const updateData = { 
+            name, bio, 
+            genres: genres ? genres.split(',').map(g => g.trim()) : [] 
+        };
 
-        const users = await User.find({ 
-            _id: { $ne: me._id, $nin: actedUserIds },
-            gender: me.interestedIn,
-            interestedIn: me.gender
-        });
-
-        const matches = users.map(u => {
-            const common = u.genres.filter(g => me.genres.includes(g));
-            const percent = Math.round((common.length / Math.max(me.genres.length, 1)) * 100);
-            return { ...u._doc, percent, common };
-        }).filter(u => u.percent >= 30);
-
-        res.render('explore', { matches });
-    } catch (err) { res.status(500).send("Explore Error"); }
-});
-
-app.post('/api/vibe-action', async (req, res) => {
-    if (!req.session.user) return res.status(401).json({ success: false });
-    const { toUserId, action } = req.body;
-    try {
-        await VibeAction.create({ fromUser: req.session.user.id, toUser: toUserId, action });
-        if (action === 'tick') {
-            await User.findByIdAndUpdate(toUserId, { $inc: { vibeCount: 1 } });
-            const reverse = await VibeAction.findOne({ fromUser: toUserId, toUser: req.session.user.id, action: 'tick' });
-            if (reverse) return res.json({ success: true, match: true, message: "Mutual Vibe! 🎉" });
-            return res.json({ success: true, match: false, message: "Vibe sent! ⏳" });
+        if (req.file) {
+            updateData.profilePic = `/uploads/${req.file.filename}`;
         }
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ success: false }); }
+
+        const updatedUser = await User.findByIdAndUpdate(req.session.user.id, updateData, { new: true });
+        if (updatedUser) {
+            req.session.user.name = updatedUser.name;
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ success: false });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false });
+    }
 });
 
-// --- CHAT WITH PERSISTENT HISTORY ---
-app.get('/chat/:id', async (req, res) => {
-    if (!req.session.user) return res.redirect('/login');
-    try {
-        const receiver = await User.findById(req.params.id);
-        const meId = req.session.user.id;
-        
-        const check1 = await VibeAction.findOne({ fromUser: meId, toUser: receiver._id, action: 'tick' });
-        const check2 = await VibeAction.findOne({ fromUser: receiver._id, toUser: meId, action: 'tick' });
-        if (!check1 || !check2) return res.send("Mutual Vibe Required to Chat.");
-
-        const room = [meId, receiver._id.toString()].sort().join('_');
-        const chatHistory = await Message.find({ room }).sort({ createdAt: 1 });
-
-        res.render('chat', { receiver, chatHistory, room, currentUser: req.session.user });
-    } catch (err) { res.status(500).send("Chat Error"); }
-});
-
-// --- PROFILE LOGIC ---
+// --- PROFILE FETCHING LOGIC ---
 const fetchFullProfile = async (targetId, currentUserId) => {
     const user = await User.findById(targetId);
     const posts = await Post.find({ user: targetId }).sort({ createdAt: -1 });
-    const receivedVibes = await VibeAction.find({ toUser: targetId, action: 'tick' }).populate('fromUser', 'name profilePic');
-    const vibeSenders = receivedVibes.map(v => v.fromUser);
-
+    
+    const received = await VibeAction.find({ toUser: targetId, action: 'tick' }).populate('fromUser');
     const myActions = await VibeAction.find({ fromUser: currentUserId });
+    
+    const myRespondedIds = myActions.map(a => a.toUser.toString());
     const myTickIds = myActions.filter(a => a.action === 'tick').map(a => a.toUser.toString());
-    const myResponseIds = myActions.map(a => a.toUser.toString());
 
-    const mutualMatchIds = vibeSenders.filter(sender => myTickIds.includes(sender._id.toString())).map(sender => sender._id.toString());
-    const topVibe = posts.length ? posts[0].vibe : 'minimal';
-    return { user, posts, vibeSenders, myResponseIds, mutualMatchIds, topVibe };
+    return { 
+        user, posts, 
+        pendingMatches: received.filter(v => !myRespondedIds.includes(v.fromUser._id.toString())).map(v => v.fromUser),
+        confirmedChats: received.filter(v => myTickIds.includes(v.fromUser._id.toString())).map(v => v.fromUser),
+        isOwner: targetId.toString() === currentUserId.toString() 
+    };
 };
 
 app.get('/profile', async (req, res) => {
     if (!req.session.user) return res.redirect('/login');
     const data = await fetchFullProfile(req.session.user.id, req.session.user.id);
-    res.render('profile', { ...data, isOwner: true });
+    res.render('profile', { ...data, topVibe: data.posts.length ? data.posts[0].vibe : 'minimal' });
 });
 
 app.get('/user/:id', async (req, res) => {
     if (!req.session.user) return res.redirect('/login');
     const data = await fetchFullProfile(req.params.id, req.session.user.id);
-    res.render('profile', { ...data, isOwner: false });
+    res.render('profile', { ...data, topVibe: data.posts.length ? data.posts[0].vibe : 'minimal' });
 });
 
-// --- MEDIA UPLOADS ---
-app.post('/profile/edit', upload.single('profilePic'), async (req, res) => {
-    const { name, bio, genres, gender, interestedIn } = req.body;
-    const update = { name, bio, gender, interestedIn, genres: genres.split(',').map(g => g.trim()) };
-    if (req.file) update.profilePic = `/uploads/${req.file.filename}`;
-    await User.findByIdAndUpdate(req.session.user.id, update);
-    res.json({ success: true });
+// --- EXPLORE ---
+app.get('/explore', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    const me = await User.findById(req.session.user.id);
+    const myActions = await VibeAction.find({ fromUser: me._id });
+    const actedUserIds = myActions.map(a => a.toUser);
+
+    const users = await User.find({ 
+        _id: { $ne: me._id, $nin: actedUserIds },
+        gender: me.interestedIn,
+        interestedIn: me.gender
+    });
+
+    const matches = users.map(u => {
+        const common = u.genres.filter(g => me.genres.includes(g));
+        const percent = Math.round((common.length / Math.max(me.genres.length, 1)) * 100);
+        return { ...u._doc, percent };
+    }).filter(u => u.percent >= 30);
+
+    const data = await fetchFullProfile(me._id, me._id);
+    res.render('explore', { ...data, matches, currentUserMoodIcon: me.moodIcon });
 });
 
+// --- CONTENT & API ---
 app.post('/upload', upload.single('postImage'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ success: false });
     const isVideo = req.file.mimetype.startsWith('video/');
-    await Post.create({ user: req.session.user.id, contentUrl: `/uploads/${req.file.filename}`, type: isVideo ? 'video' : 'image' });
+    await Post.create({ 
+        user: req.session.user.id, 
+        contentUrl: `/uploads/${req.file.filename}`, 
+        type: isVideo ? 'video' : 'image' 
+    });
     res.json({ success: true });
 });
 
-// --- SOCKET.IO ---
+app.post('/delete-post/:id', async (req, res) => {
+    const post = await Post.findById(req.params.id);
+    if (post && post.user.toString() === req.session.user.id) {
+        const filePath = path.join(__dirname, 'public', post.contentUrl);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        await Post.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } else res.status(403).json({ success: false });
+});
+
+app.post('/api/vibe-action', async (req, res) => {
+    const { toUserId, action } = req.body;
+    await VibeAction.findOneAndUpdate(
+        { fromUser: req.session.user.id, toUser: toUserId },
+        { action },
+        { upsert: true }
+    );
+    res.json({ success: true });
+});
+
+app.post('/api/update-mood', async (req, res) => {
+    const { mood, icon } = req.body;
+    await User.findByIdAndUpdate(req.session.user.id, { currentMood: mood, moodIcon: icon });
+    res.json({ success: true });
+});
+
+// --- CHAT ---
+app.get('/chat/:id', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    const receiver = await User.findById(req.params.id);
+    const room = [req.session.user.id, receiver._id.toString()].sort().join('_');
+    const chatHistory = await Message.find({ room }).sort({ createdAt: 1 });
+    res.render('chat', { receiver, chatHistory, room });
+});
+
 io.on('connection', (socket) => {
     socket.on('joinRoom', (room) => socket.join(room));
-
     socket.on('chatMessage', async (data) => {
-        try {
-            const newMessage = new Message({
-                room: data.room,
-                sender: data.senderId,
-                text: data.msg
-            });
-            await newMessage.save();
-            io.to(data.room).emit('message', {
-                msg: data.msg,
-                senderId: data.senderId
-            });
-        } catch (err) { console.error(err); }
+        const msg = new Message({ room: data.room, sender: data.senderId, text: data.msg });
+        await msg.save();
+        io.to(data.room).emit('message', { msg: data.msg, senderId: data.senderId });
     });
 });
 
-server.listen(PORT, () => console.log(`🚀 EHSAAS REAL-TIME: http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`🚀 EHSAAS LIVE: http://localhost:${PORT}`));
