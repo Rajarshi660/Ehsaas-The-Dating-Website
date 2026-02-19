@@ -2,132 +2,102 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Discover Vibes | Ehsaas</title>
+    <title>Explore Vibes | Ehsaas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        .mood-glow { 
-            box-shadow: 0 0 30px rgba(244, 63, 94, 0.3); 
-            border: 1px solid rgba(244, 63, 94, 0.5); 
-        }
-        .glass-card { 
-            background: rgba(255, 255, 255, 0.02); 
-            backdrop-filter: blur(15px); 
-            border: 1px solid rgba(255,255,255,0.05); 
-        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        body { 
-            background: radial-gradient(circle at top, #0f0f0f, #050505); 
-        }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        /* Swipe Animations */
+        .swipe-right { transform: translateX(200%) rotate(30deg) !important; opacity: 0; transition: 0.7s ease-out; }
+        .swipe-left { transform: translateX(-200%) rotate(-30deg) !important; opacity: 0; transition: 0.7s ease-out; }
+        .match-card { transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.5s; }
     </style>
 </head>
-<body class="text-white min-h-screen no-scrollbar antialiased">
+<body class="bg-[#050505] text-white antialiased no-scrollbar">
 
     <%- include('partials/explore-navbar') %>
 
-    <main class="max-w-5xl mx-auto p-6 pt-12 relative z-10">
-        
-        <div class="mb-16 text-center">
-            <h2 class="text-[10px] font-black uppercase tracking-[0.6em] text-rose-500 mb-3">Discovery Mode</h2>
-            <p class="text-gray-500 text-xs italic font-medium">Scanning the local frequency for compatible auras...</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
-            <% if (matches && matches.length > 0) { %>
-                <% matches.forEach(match => { %>
-                    <div class="glass-card rounded-[3rem] overflow-hidden relative group transition-all duration-700 hover:translate-y-[-8px] <%= match.moodIcon === currentUserMoodIcon ? 'mood-glow' : '' %>">
+    <main class="max-w-lg mx-auto px-6 py-10">
+        <% if (matches && matches.length > 0) { %>
+            <div class="relative h-[75vh] w-full">
+                <% matches.forEach((match, index) => { %>
+                    <div id="card-<%= match._id %>" 
+                         class="match-card absolute inset-0 w-full h-full rounded-[3rem] overflow-hidden shadow-2xl border border-white/10"
+                         style="z-index: <%= matches.length - index %>; transform: scale(<%= 1 - (index * 0.05) %>) translateY(<%= index * 15 %>px);">
                         
-                        <% if (match.moodIcon === currentUserMoodIcon) { %>
-                            <div class="absolute top-8 left-8 z-30 flex items-center gap-2 bg-rose-500 text-[9px] font-black px-4 py-2 rounded-full shadow-2xl animate-pulse">
-                                <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
-                                AURA SYNCED
+                        <img src="<%= match.profilePic %>" class="w-full h-full object-cover">
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent flex flex-col justify-end p-8">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h2 class="text-3xl font-black tracking-tighter"><%= match.name %></h2>
+                                <span class="bg-rose-500/20 text-rose-500 text-[10px] px-2 py-1 rounded-full font-bold border border-rose-500/30">
+                                    <%= match.percent %>% Sync
+                                </span>
                             </div>
-                        <% } %>
+                            <p class="text-gray-300 text-sm mb-8 italic">"<%= match.bio || 'Seeking a frequency match.' %>"</p>
 
-                        <div class="aspect-[4/5] overflow-hidden relative">
-                            <img src="<%= match.profilePic || 'https://via.placeholder.com/600' %>" 
-                                 class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105">
-                            <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/20 to-transparent opacity-90"></div>
-                        </div>
-
-                        <div class="p-10 relative mt-[-120px] z-20">
-                            <div class="flex justify-between items-end mb-8">
-                                <div>
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <h3 class="text-3xl font-black tracking-tighter"><%= match.name %></h3>
-                                        <div class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                                            <span class="text-amber-500 text-[9px] font-black uppercase tracking-widest">LVL <%= match.level || 1 %></span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-2xl opacity-90"><%= match.moodIcon %></span>
-                                        <p class="text-[10px] text-rose-400 font-bold uppercase tracking-[0.2em]">
-                                            <%= match.currentMood || "Vibing Solo" %>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-1 opacity-50">Match</p>
-                                    <span class="text-4xl font-black text-white/10"><%= match.percent %>%</span>
-                                </div>
-                            </div>
-
-                            <div class="flex gap-4">
-                                <button onclick="vibeAction('<%= match._id %>', 'cross')" 
-                                        class="flex-1 py-5 rounded-[1.5rem] bg-white/5 hover:bg-rose-500/10 text-rose-500 transition-all font-black uppercase text-[10px] tracking-widest border border-white/5 group-hover:border-rose-500/20">
-                                    Pass
+                            <div class="flex items-center justify-center gap-8 mb-4">
+                                <button onclick="handleVibe('<%= match._id %>', 'cross')" class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-xl group">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 </button>
-                                <button onclick="vibeAction('<%= match._id %>', 'tick')" 
-                                        class="flex-[2.5] py-5 rounded-[1.5rem] bg-rose-500 hover:bg-rose-600 transition-all font-black uppercase text-[10px] tracking-widest shadow-2xl shadow-rose-500/30 active:scale-95 border border-rose-400/20">
-                                    Tick Vibe
+
+                                <button onclick="handleVibe('<%= match._id %>', 'tick')" class="w-20 h-20 rounded-full bg-rose-500 flex items-center justify-center text-white hover:scale-110 active:scale-90 transition-all shadow-2xl shadow-rose-500/40 group">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 </button>
                             </div>
                         </div>
                     </div>
                 <% }) %>
-            <% } else { %>
-                <div class="col-span-full flex flex-col items-center justify-center py-40 bg-white/5 rounded-[4rem] border border-dashed border-white/10">
-                    <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                    </div>
-                    <h3 class="text-gray-400 font-black uppercase tracking-[0.4em] text-xs">Zero Signal</h3>
-                    <p class="text-gray-600 text-[10px] mt-2 italic">You've reached the end of the current wave. Check back soon!</p>
+            </div>
+        <% } else { %>
+            <div class="h-[60vh] flex flex-col items-center justify-center text-center px-10">
+                <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="1.5"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
-            <% } %>
-        </div>
+                <h2 class="text-lg font-black uppercase tracking-widest mb-2">Aura Depleted</h2>
+                <p class="text-gray-500 text-xs">No signals found in your current radius.</p>
+                <a href="/profile" class="mt-8 px-6 py-2 bg-white text-black text-[10px] font-black uppercase rounded-full">Recalibrate</a>
+            </div>
+        <% } %>
     </main>
 
-    <%- include('partials/modals') %>
-
     <script>
-        // Core Vibe Logic
-        async function vibeAction(toUserId, action) {
+        async function handleVibe(userId, action) {
+            const card = document.getElementById(`card-${userId}`);
+            
             try {
-                const res = await fetch('/api/vibe-action', {
+                const response = await fetch('/api/vibe-action', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ toUserId, action })
+                    body: JSON.stringify({ toUserId: userId, action: action })
                 });
-                const data = await res.json();
-                
-                if (data.match) {
-                    confetti({
-                        particleCount: 180,
-                        spread: 80,
-                        origin: { y: 0.6 },
-                        colors: ['#f43f5e', '#ffffff', '#fbbf24']
-                    });
-                    alert("Aura Synergy Confirmed! 🎉 Check your Vault.");
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Trigger Swipe Animation
+                    if (action === 'tick') {
+                        card.classList.add('swipe-right');
+                        confetti({
+                            particleCount: 150,
+                            spread: 70,
+                            origin: { y: 0.6 },
+                            colors: ['#f43f5e', '#ffffff']
+                        });
+                    } else {
+                        card.classList.add('swipe-left');
+                    }
+
+                    // Reload page to show next card after animation
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 600);
                 }
-                window.location.reload();
             } catch (err) {
                 console.error("Vibe Error:", err);
             }
         }
-        
-        // Modal helpers for Navbar functions
-        function openModal(id) { document.getElementById(id)?.classList.replace('hidden', 'flex'); }
-        function closeModal(id) { document.getElementById(id)?.classList.replace('flex', 'hidden'); }
     </script>
 </body>
 </html>

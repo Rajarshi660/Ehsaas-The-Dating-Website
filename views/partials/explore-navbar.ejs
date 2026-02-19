@@ -1,34 +1,36 @@
 <nav class="fixed top-6 left-1/2 -translate-x-1/2 z-[110] w-[90%] max-w-3xl">
-    <div class="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+    <div class="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl">
         
         <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='/profile'">
             <div class="w-8 h-8 bg-gradient-to-tr from-rose-600 to-rose-400 rounded-full flex items-center justify-center">
                 <span class="text-white font-black text-xs">E</span>
             </div>
-            <h1 class="hidden md:block font-black tracking-tighter text-sm uppercase">Ehsaas</h1>
+            <h1 class="hidden md:block font-black tracking-tighter text-sm uppercase text-white">Ehsaas</h1>
         </div>
 
-        <div class="flex items-center gap-6">
-            <button onclick="openModal('matchRequestModal')" class="relative text-gray-400 hover:text-rose-500 transition-all">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                <% if (locals.pendingCount > 0) { %>
-                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full border border-black animate-pulse"></span>
-                <% } %>
-            </button>
-
-            <button onclick="openModal('chatListModal')" class="text-gray-400 hover:text-blue-400 transition-all">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            </button>
-            
-            <button onclick="openModal('uploadModal')" class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-rose-500 transition-all">+</button>
+        <div class="flex items-center justify-center">
+            <a href="/reels-feed" class="flex items-center gap-3 text-gray-400 hover:text-white transition-all transform hover:scale-110 group">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-rose-500 transition-colors">
+                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                    <line x1="7" y1="2" x2="7" y2="22"></line>
+                    <line x1="17" y1="2" x2="17" y2="22"></line>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <line x1="2" y1="7" x2="7" y2="7"></line>
+                    <line x1="2" y1="17" x2="7" y2="17"></line>
+                    <line x1="17" y1="17" x2="22" y2="17"></line>
+                    <line x1="17" y1="7" x2="22" y2="7"></line>
+                </svg>
+                <span class="hidden md:block text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-rose-500 transition-colors"></span>
+            </a>
         </div>
 
-        <div class="flex items-center gap-3">
-            <a href="/logout" class="text-[9px] font-black uppercase text-rose-500 hover:text-white transition">Exit</a>
-            <a href="/profile" class="w-8 h-8 rounded-full border border-white/20 overflow-hidden">
-                <img src="<%= locals.currentUser ? currentUser.profilePic : 'https://via.placeholder.com/50' %>" class="w-full h-full object-cover">
+        <div class="flex items-center gap-4">
+            <a href="/logout" class="text-[9px] font-black uppercase text-rose-500 hover:text-white transition-colors">Exit</a>
+            <a href="/profile" class="w-9 h-9 rounded-full border border-white/10 overflow-hidden hover:border-rose-500 transition-all">
+                <img src="<%= locals.currentUser ? currentUser.profilePic : '/uploads/default-avatar.png' %>" class="w-full h-full object-cover">
             </a>
         </div>
     </div>
 </nav>
-<div class="h-24"></div>
+
+<div class="h-28"></div>

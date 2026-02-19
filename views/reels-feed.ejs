@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ehsaas | Global Reels</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .reels-container { scroll-snap-type: y mandatory; height: 100vh; overflow-y: scroll; scroll-behavior: smooth; }
+        .reel-card { scroll-snap-align: start; height: 100vh; position: relative; background: #000; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        .vibe-glow { filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.4)); }
+    </style>
+</head>
+<body class="bg-black text-white no-scrollbar overflow-hidden">
+
+    <div class="fixed top-0 inset-x-0 z-50 flex justify-between items-center p-8 pointer-events-none">
+        <a href="/explore" class="p-3 bg-black/20 backdrop-blur-xl rounded-full border border-white/10 text-white pointer-events-auto hover:bg-white hover:text-black transition-all">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </a>
+        
+        <button onclick="toggleGlobalMute()" class="p-3 bg-black/20 backdrop-blur-xl rounded-full border border-white/10 text-white pointer-events-auto hover:scale-110 transition-all">
+            <span id="mute-icon" class="text-xl leading-none">🔇</span>
+        </button>
+    </div>
+
+    <div class="reels-container no-scrollbar">
+        <% if(allReels && allReels.length > 0) { %>
+            <% allReels.forEach(reel => { %>
+                <div class="reel-card flex items-center justify-center">
+                    <video 
+                        src="<%= reel.contentUrl %>" 
+                        class="h-full w-full object-cover md:w-auto md:max-w-md reel-video" 
+                        loop 
+                        playsinline
+                        onclick="togglePlayPause(this)"
+                        muted
+                    ></video>
+
+                    <div class="absolute bottom-10 left-6 right-24 pointer-events-none">
+                        <div class="flex items-center gap-3 mb-4 pointer-events-auto">
+                            <a href="/user/<%= reel.user._id %>" class="flex items-center gap-3 group">
+                                <img src="<%= reel.user.profilePic %>" class="w-12 h-12 rounded-full border-2 border-white shadow-2xl group-hover:border-rose-500 transition-all">
+                                <div class="drop-shadow-lg">
+                                    <h3 class="font-black text-lg tracking-tight">@<%= reel.user.name %></h3>
+                                    <p class="text-[10px] text-gray-300 uppercase tracking-widest font-bold">Frequency Live</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="absolute right-6 bottom-24 flex flex-col gap-8 items-center z-40">
+                        <button onclick="toggleLike('<%= reel._id %>')" class="flex flex-col items-center gap-1 group">
+                            <div id="like-box-<%= reel._id %>" class="p-4 rounded-full transition-all vibe-glow <%= reel.likedBy.includes(currentUser._id) ? 'bg-rose-500 text-white' : 'bg-white/10 text-gray-300' %>">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="<%= reel.likedBy.includes(currentUser._id) ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                            </div>
+                            <span id="like-count-<%= reel._id %>" class="text-[10px] font-black text-white drop-shadow-md"><%= reel.likes %></span>
+                        </button>
+
+                        <button onclick="openQuickChat('<%= reel.user._id %>', '<%= reel.user.name %>')" class="flex flex-col items-center gap-1 group">
+                            <div class="bg-white/10 p-4 rounded-full group-hover:bg-blue-500 transition-all backdrop-blur-md">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 drop-shadow-md">Reply</span>
+                        </button>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="h-screen flex flex-col items-center justify-center text-center px-10">
+                <h1 class="text-3xl font-black mb-2 uppercase tracking-tighter">Silence</h1>
+                <p class="text-gray-500 text-[10px] font-bold uppercase tracking-[0.3em]">No broadcast signals found.</p>
+            </div>
+        <% } %>
+    </div>
+
+    <div id="quickChatModal" class="fixed inset-0 z-[200] hidden items-end justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-[#0f0f0f] w-full max-w-md rounded-t-[2.5rem] p-8 border-t border-white/10 animate-slide-up shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-400">Send Frequency to <span id="reply-name" class="text-rose-500"></span></h3>
+                <button onclick="closeQuickChat()" class="text-gray-600 hover:text-white text-2xl transition-colors">&times;</button>
+            </div>
+            <div class="relative">
+                <textarea id="quick-text" placeholder="Type a message..." class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-rose-500/40 h-32 no-scrollbar text-white"></textarea>
+                <button onclick="sendQuickMessage()" class="absolute bottom-4 right-4 bg-rose-500 p-3 rounded-full text-white shadow-xl hover:scale-110 active:scale-95 transition-all">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentReceiverId = null;
+        let isGlobalMuted = true;
+
+        // Audio Toggle
+        function toggleGlobalMute() {
+            isGlobalMuted = !isGlobalMuted;
+            const videos = document.querySelectorAll('.reel-video');
+            const icon = document.getElementById('mute-icon');
+            
+            videos.forEach(v => { v.muted = isGlobalMuted; });
+            icon.innerText = isGlobalMuted ? '🔇' : '🔊';
+        }
+
+        // Play/Pause on click
+        function togglePlayPause(video) {
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        }
+
+        // Like Logic
+        async function toggleLike(postId) {
+            const res = await fetch(`/api/posts/${postId}/like`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById(`like-count-${postId}`).innerText = data.likes;
+                const box = document.getElementById(`like-box-${postId}`);
+                box.classList.toggle('bg-rose-500');
+                box.classList.toggle('bg-white/10');
+                box.classList.toggle('text-white');
+                const svg = box.querySelector('svg');
+                svg.setAttribute('fill', data.isLiked ? 'currentColor' : 'none');
+            }
+        }
+
+        // Quick Message Logic
+        function openQuickChat(id, name) {
+            currentReceiverId = id;
+            document.getElementById('reply-name').innerText = name;
+            document.getElementById('quickChatModal').classList.replace('hidden', 'flex');
+            document.getElementById('quick-text').focus();
+        }
+
+        function closeQuickChat() {
+            document.getElementById('quickChatModal').classList.replace('flex', 'hidden');
+            document.getElementById('quick-text').value = '';
+        }
+
+        async function sendQuickMessage() {
+            const text = document.getElementById('quick-text').value;
+            if (!text.trim()) return;
+            const res = await fetch('/api/quick-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ receiverId: currentReceiverId, text })
+            });
+            if (res.ok) {
+                closeQuickChat();
+                // Optional: Show a subtle toast instead of alert
+            }
+        }
+
+        // Intersection Observer for video management
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target.querySelector('video');
+                if (video) {
+                    if (entry.isIntersecting) {
+                        video.muted = isGlobalMuted;
+                        video.play().catch(e => console.log("User interaction required for audio"));
+                    } else {
+                        video.pause();
+                    }
+                }
+            });
+        }, { threshold: 0.8 });
+
+        document.querySelectorAll('.reel-card').forEach(card => observer.observe(card));
+    </script>
+</body>
+</html>

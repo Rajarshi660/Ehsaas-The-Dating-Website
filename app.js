@@ -47,14 +47,14 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Global Middleware for Navbar Counts & Data
+// Global Middleware for Navbar Counts & Session Data
 app.use(async (req, res, next) => {
     if (req.session.user) {
         try {
             const user = await User.findById(req.session.user.id);
             res.locals.currentUser = user;
             
-            // Pending matches for the Heart Notification Badge
+            // Pending Matches for Heart Notification
             const received = await VibeAction.find({ toUser: user._id, action: 'tick' }).populate('fromUser');
             const myActions = await VibeAction.find({ fromUser: user._id });
             const myRespondedIds = myActions.map(a => a.toUser.toString());
@@ -72,35 +72,25 @@ app.use(async (req, res, next) => {
 
 // --- AUTH & LANDING ROUTES ---
 app.get('/', (req, res) => res.render('landing')); 
-
 app.get('/login', (req, res) => res.render('login'));
-
 app.get('/signup', (req, res) => res.render('signup'));
 
-// FIXED: Signup Post Route
 app.post('/auth/signup', async (req, res) => {
     try {
         const { name, email, password, gender, interestedIn, genres } = req.body;
         const genresArray = genres ? genres.split(',').map(g => g.trim().toLowerCase()) : [];
-        
         const newUser = new User({ 
             name, email, password, gender, interestedIn, 
-            genres: genresArray,
-            points: 50, level: 1,
+            genres: genresArray, points: 50, level: 1,
             currentMood: "Vibing", moodIcon: "✨",
             profilePic: "/uploads/default-avatar.png" 
         });
-
         await newUser.save();
         req.session.user = { id: newUser._id, name: newUser.name };
         res.redirect('/profile');
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Signup Error: Account may already exist.");
-    }
+    } catch (err) { res.status(500).send("Signup Error"); }
 });
 
-// Fixed: Login Post Route
 app.post('/auth/login', async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -109,50 +99,112 @@ app.post('/auth/login', async (req, res) => {
             req.session.user = { id: user._id, name: user.name };
             return res.redirect('/profile');
         }
-        res.status(401).send("Invalid email or password.");
+        res.status(401).send("Invalid credentials.");
     } catch (err) { res.status(500).send("Login Error"); }
 });
 
 app.get('/logout', (req, res) => {
-    req.session.destroy(() => {
-        res.clearCookie('connect.sid');
-        res.redirect('/login');
-    });
+    req.session.destroy(() => res.redirect('/login'));
 });
 
-// --- PROFILE EDIT (FIXED FOR SAVE FAILED) ---
+// --- API ACTIONS ---
+
+// FIXED: Explore Page Vibe Action
+app.post('/api/vibe-action', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ success: false });
+    const { toUserId, action } = req.body;
+    try {
+        await VibeAction.findOneAndUpdate(
+            { fromUser: req.session.user.id, toUser: toUserId },
+            { action },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+
+// Reels Like API
+app.post('/api/posts/:id/like', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ success: false });
+    try {
+        const post = await Post.findById(req.params.id);
+        const userId = req.session.user.id;
+        
+        if (post.likedBy.includes(userId)) {
+            post.likedBy.pull(userId);
+            post.likes = Math.max(0, post.likes - 1);
+        } else {
+            post.likedBy.push(userId);
+            post.likes += 1;
+        }
+        await post.save();
+        res.json({ success: true, likes: post.likes, isLiked: post.likedBy.includes(userId) });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+
+// Quick Message API
+app.post('/api/quick-message', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ success: false });
+    const { receiverId, text } = req.body;
+    const room = [req.session.user.id, receiverId].sort().join('_');
+    try {
+        await Message.create({ room, sender: req.session.user.id, text });
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+
+// --- FEEDS & CONTENT ---
+
+app.get('/reels-feed', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    try {
+        const allReels = await Post.find({ type: 'video' })
+            .populate('user', 'name profilePic')
+            .sort({ createdAt: -1 });
+        res.render('reels-feed', { allReels });
+    } catch (err) { res.status(500).send("Error loading reels"); }
+});
+
+app.get('/explore', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    const me = await User.findById(req.session.user.id);
+    const myActions = await VibeAction.find({ fromUser: me._id });
+    const actedUserIds = myActions.map(a => a.toUser);
+
+    const users = await User.find({ 
+        _id: { $ne: me._id, $nin: actedUserIds },
+        gender: me.interestedIn,
+        interestedIn: me.gender
+    });
+
+    const matches = users.map(u => {
+        const common = u.genres.filter(g => me.genres.includes(g));
+        const percent = Math.round((common.length / Math.max(me.genres.length, 1)) * 100);
+        return { ...u._doc, percent };
+    }).filter(u => u.percent >= 30);
+
+    const matchData = await fetchFullProfile(me._id, me._id);
+    res.render('explore', { ...matchData, matches, currentUserMoodIcon: me.moodIcon });
+});
+
+// --- PROFILE & SOCIAL ---
+
 app.post('/profile/edit', upload.single('profilePic'), async (req, res) => {
     try {
         const { name, bio, genres } = req.body;
-        const updateData = { 
-            name, bio, 
-            genres: genres ? genres.split(',').map(g => g.trim()) : [] 
-        };
-
-        if (req.file) {
-            updateData.profilePic = `/uploads/${req.file.filename}`;
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(req.session.user.id, updateData, { new: true });
-        if (updatedUser) {
-            req.session.user.name = updatedUser.name;
-            res.json({ success: true });
-        } else {
-            res.status(404).json({ success: false });
-        }
-    } catch (err) {
-        res.status(500).json({ success: false });
-    }
+        const updateData = { name, bio, genres: genres ? genres.split(',').map(g => g.trim()) : [] };
+        if (req.file) updateData.profilePic = `/uploads/${req.file.filename}`;
+        
+        await User.findByIdAndUpdate(req.session.user.id, updateData);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// --- PROFILE FETCHING LOGIC ---
 const fetchFullProfile = async (targetId, currentUserId) => {
     const user = await User.findById(targetId);
     const posts = await Post.find({ user: targetId }).sort({ createdAt: -1 });
-    
     const received = await VibeAction.find({ toUser: targetId, action: 'tick' }).populate('fromUser');
     const myActions = await VibeAction.find({ fromUser: currentUserId });
-    
     const myRespondedIds = myActions.map(a => a.toUser.toString());
     const myTickIds = myActions.filter(a => a.action === 'tick').map(a => a.toUser.toString());
 
@@ -176,30 +228,6 @@ app.get('/user/:id', async (req, res) => {
     res.render('profile', { ...data, topVibe: data.posts.length ? data.posts[0].vibe : 'minimal' });
 });
 
-// --- EXPLORE ---
-app.get('/explore', async (req, res) => {
-    if (!req.session.user) return res.redirect('/login');
-    const me = await User.findById(req.session.user.id);
-    const myActions = await VibeAction.find({ fromUser: me._id });
-    const actedUserIds = myActions.map(a => a.toUser);
-
-    const users = await User.find({ 
-        _id: { $ne: me._id, $nin: actedUserIds },
-        gender: me.interestedIn,
-        interestedIn: me.gender
-    });
-
-    const matches = users.map(u => {
-        const common = u.genres.filter(g => me.genres.includes(g));
-        const percent = Math.round((common.length / Math.max(me.genres.length, 1)) * 100);
-        return { ...u._doc, percent };
-    }).filter(u => u.percent >= 30);
-
-    const data = await fetchFullProfile(me._id, me._id);
-    res.render('explore', { ...data, matches, currentUserMoodIcon: me.moodIcon });
-});
-
-// --- CONTENT & API ---
 app.post('/upload', upload.single('postImage'), async (req, res) => {
     if (!req.file) return res.status(400).json({ success: false });
     const isVideo = req.file.mimetype.startsWith('video/');
@@ -221,23 +249,14 @@ app.post('/delete-post/:id', async (req, res) => {
     } else res.status(403).json({ success: false });
 });
 
-app.post('/api/vibe-action', async (req, res) => {
-    const { toUserId, action } = req.body;
-    await VibeAction.findOneAndUpdate(
-        { fromUser: req.session.user.id, toUser: toUserId },
-        { action },
-        { upsert: true }
-    );
-    res.json({ success: true });
-});
-
 app.post('/api/update-mood', async (req, res) => {
     const { mood, icon } = req.body;
     await User.findByIdAndUpdate(req.session.user.id, { currentMood: mood, moodIcon: icon });
     res.json({ success: true });
 });
 
-// --- CHAT ---
+// --- CHAT & SOCKETS ---
+
 app.get('/chat/:id', async (req, res) => {
     if (!req.session.user) return res.redirect('/login');
     const receiver = await User.findById(req.params.id);
@@ -249,9 +268,12 @@ app.get('/chat/:id', async (req, res) => {
 io.on('connection', (socket) => {
     socket.on('joinRoom', (room) => socket.join(room));
     socket.on('chatMessage', async (data) => {
-        const msg = new Message({ room: data.room, sender: data.senderId, text: data.msg });
-        await msg.save();
-        io.to(data.room).emit('message', { msg: data.msg, senderId: data.senderId });
+        const msg = await Message.create({ room: data.room, sender: data.senderId, text: data.msg });
+        io.to(data.room).emit('message', {
+            msg: msg.text,
+            senderId: msg.sender,
+            createdAt: msg.createdAt
+        });
     });
 });
 
